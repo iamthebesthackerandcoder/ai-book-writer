@@ -1,33 +1,42 @@
-# AutoGen Book Generator
+# AI Book Writer
 
-A Python-based system that uses AutoGen to generate complete books through collaborative AI agents. The system employs multiple specialized agents working together to create coherent, structured narratives from initial prompts.
+A web-based application that guides you through the process of writing a book with AI assistance. The system uses local AI models to help generate world settings, characters, outlines, and complete chapters.
 
 ## Features
 
-- Multi-agent collaborative writing system
-- Structured chapter generation with consistent formatting
-- Maintains story continuity and character development
-- Automated world-building and setting management
-- Support for complex, multi-chapter narratives
-- Built-in validation and error handling
+- Web-based user interface with no authentication required
+- Step-by-step guided book writing process
+- Real-time AI generation of:
+  - World settings and environments
+  - Character profiles and development
+  - Book outlines with chapter structure
+  - Scene generation for individual chapters
+  - Full chapter content
+- Local AI model support (compatible with your existing config)
+- Progress tracking
+- Ability to edit and save generated content
+- All content stored in local files for easy access
 
 ## Architecture
 
-The system uses several specialized agents:
+The application consists of:
 
-- **Story Planner**: Creates high-level story arcs and plot points
-- **World Builder**: Establishes and maintains consistent settings
-- **Memory Keeper**: Tracks continuity and context
-- **Writer**: Generates the actual prose
-- **Editor**: Reviews and improves content
-- **Outline Creator**: Creates detailed chapter outlines
+- **Flask Web Server**: Provides the user interface and manages the book generation process
+- **AI Agents**: Specialized agents for different aspects of book creation:
+  - Story planning
+  - World building
+  - Character development
+  - Scene creation
+  - Writing and editing
+- **Prompt Management**: Centralized prompt templates in `prompts.py`
+- **File Storage**: Local storage of all generated content in the `book_output` directory
 
 ## Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/autogen-book-generator.git
-cd autogen-book-generator
+git clone https://github.com/yourusername/ai-book-writer.git
+cd ai-book-writer
 ```
 
 2. Create a virtual environment:
@@ -43,98 +52,66 @@ pip install -r requirements.txt
 
 ## Usage
 
-1. Basic usage:
-```python
-from main import main
+1. Start the local AI model server according to your `config.py` settings.
 
-if __name__ == "__main__":
-    main()
+2. Run the web application:
+```bash
+python web_app.py
 ```
 
-2. Custom initial prompt:
-```python
-from config import get_config
-from agents import BookAgents
-from book_generator import BookGenerator
-from outline_generator import OutlineGenerator
-
-# Get configuration
-agent_config = get_config()
-
-# Create agents
-outline_agents = BookAgents(agent_config)
-agents = outline_agents.create_agents()
-
-# Generate outline
-outline_gen = OutlineGenerator(agents, agent_config)
-outline = outline_gen.generate_outline(your_prompt, num_chapters=25)
-
-# Initialize book generator
-book_agents = BookAgents(agent_config, outline)
-agents_with_context = book_agents.create_agents()
-book_gen = BookGenerator(agents_with_context, agent_config, outline)
-
-# Generate book
-book_gen.generate_book(outline)
+3. Open your browser and navigate to:
+```
+http://localhost:5000
 ```
 
-## Configuration
+4. Follow the step-by-step process in the web interface:
+   - Create a world setting
+   - Generate characters
+   - Create a book outline
+   - Work chapter by chapter to generate your book
 
-The system can be configured through `config.py`. Key configurations include:
+## Book Writing Workflow
 
-- LLM endpoint URL
-- Number of chapters
-- Agent parameters
-- Output directory settings
+The application guides you through a logical book creation process:
+
+1. **World Building**: Define the setting, time period, and environment for your story
+2. **Character Creation**: Generate the main characters for your book
+3. **Outline Generation**: Create a chapter-by-chapter outline of your story
+4. **Chapter Writing**:
+   - Generate individual scenes for a chapter
+   - Generate a complete chapter
+   - Edit and save your chapters
+   - Proceed to the next chapter
 
 ## Output Structure
 
-Generated content is saved in the `book_output` directory:
+All generated content is saved in the `book_output` directory:
 ```
 book_output/
-├── outline.txt
-├── chapter_01.txt
-├── chapter_02.txt
-└── ...
+├── world.txt                # World setting
+├── characters.txt           # Character profiles
+├── outline.txt              # Full book outline
+├── outline.json             # Structured outline data
+├── chapters/
+│   ├── chapter_1.txt
+│   ├── chapter_2.txt
+│   └── ...
+│   └── chapter_1_scenes/    # Generated scenes for chapters
+│       ├── scene_1.txt
+│       └── ...
 ```
 
 ## Requirements
 
 - Python 3.8+
+- Flask 2.2.0+
 - AutoGen 0.2.0+
+- Local AI model (as configured in your existing `config.py`)
 - Other dependencies listed in requirements.txt
 
-## Development
+## Configuration
 
-To contribute to the project:
-
-1. Fork the repository
-2. Create a new branch for your feature
-3. Install development dependencies:
-```bash
-pip install -r requirements.txt
-```
-4. Make your changes
-5. Run tests:
-```bash
-pytest
-```
-6. Submit a pull request
-
-## Error Handling
-
-The system includes robust error handling:
-- Validates chapter completeness
-- Ensures proper formatting
-- Maintains backup copies of generated content
-- Implements retry logic for failed generations
-
-## Limitations
-
-- Requires significant computational resources
-- Generation time increases with chapter count
-- Quality depends on the underlying LLM model
-- May require manual review for final polish
+The system can be configured through `config.py` for the AI model settings and `prompts.py` for generation prompts.
 
 ## Contributing
 
@@ -143,8 +120,3 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- Built using the [AutoGen](https://github.com/microsoft/autogen) framework
-- Inspired by collaborative writing systems

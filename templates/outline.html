@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}AI Book Writer - Book Outline{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h2 class="h4 mb-0">Book Outline</h2>
+                <div>
+                    <a href="/characters" class="btn btn-light btn-sm">&laquo; Back to Characters</a>
+                    {% if chapters %}
+                    <a href="/chapter/1" class="btn btn-light btn-sm">Start Writing Chapters &raquo;</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                {% if not world_theme or not characters %}
+                <div class="alert alert-warning">
+                    <strong>Warning:</strong> You need to create a world setting and characters first.
+                    {% if not world_theme %}
+                    <a href="/world" class="alert-link">Go to World Creation</a>
+                    {% elif not characters %}
+                    <a href="/characters" class="alert-link">Go to Character Creation</a>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="accordion mb-4" id="contextAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#worldSettingCollapse">
+                                World Setting
+                            </button>
+                        </h2>
+                        <div id="worldSettingCollapse" class="accordion-collapse collapse" data-bs-parent="#contextAccordion">
+                            <div class="accordion-body">
+                                {{ world_theme }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#charactersCollapse">
+                                Characters
+                            </button>
+                        </h2>
+                        <div id="charactersCollapse" class="accordion-collapse collapse" data-bs-parent="#contextAccordion">
+                            <div class="accordion-body">
+                                {{ characters }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="outlineForm" action="/outline" method="post">
+                    <div class="mb-3">
+                        <label for="numChapters" class="form-label">How many chapters do you want in your book?</label>
+                        <input type="number" class="form-control" id="numChapters" name="num_chapters" min="3" max="50" value="10">
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary" id="generateOutlineBtn">Generate Book Outline</button>
+                    </div>
+                </form>
+                
+                <div id="generatingIndicator" class="alert alert-info mt-3 d-none">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border spinner-border-sm me-2" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div>Generating book outline... This may take a few minutes.</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-12" id="outlineResultContainer" {% if not outline %}style="display: none;"{% endif %}>
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h3 class="h5 mb-0">Your Book Outline</h3>
+            </div>
+            <div class="card-body">
+                <form id="saveOutlineForm" action="/save_outline" method="post">
+                    <div class="mb-3">
+                        <label for="outlineContent" class="form-label">Edit your book outline if needed:</label>
+                        <textarea class="form-control" id="outlineContent" name="outline" rows="20">{{ outline }}</textarea>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-success" id="saveOutlineBtn">Save Changes</button>
+                        {% if chapters %}
+                        <a href="/chapter/1" class="btn btn-primary">Start Writing Chapter 1</a>
+                        {% endif %}
+                    </div>
+                </form>
+                
+                <div id="savingIndicator" class="alert alert-info mt-3 d-none">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border spinner-border-sm me-2" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div>Saving changes...</div>
+                    </div>
+                </div>
+                
+                <div id="savedIndicator" class="alert alert-success mt-3 d-none">
+                    <div>Outline saved successfully!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if chapters %}
+    <div class="col-12 mt-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h3 class="h5 mb-0">Chapter Navigation</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for chapter in chapters %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h4 class="h6 card-title">Chapter {{ chapter.chapter_number }}: {{ chapter.title }}</h4>
+                                <p class="card-text small">{{ chapter.prompt[:100] }}{% if chapter.prompt|length > 100 %}...{% endif %}</p>
+                                <a href="/chapter/{{ chapter.chapter_number }}" class="btn btn-sm btn-outline-primary">
+                                    {% if chapter.chapter_number == 1 %}
+                                    Start Writing
+                                    {% else %}
+                                    Write This Chapter
+                                    {% endif %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+$(document).ready(function() {
+    // Generate outline
+    $('#outlineForm').submit(function(e) {
+        e.preventDefault();
+        $('#generatingIndicator').removeClass('d-none');
+        $('#generateOutlineBtn').prop('disabled', true);
+        
+        $.ajax({
+            type: 'POST',
+            url: '/outline',
+            data: $(this).serialize(),
+            success: function(response) {
+                if (response.error) {
+                    alert(response.error);
+                    $('#generatingIndicator').addClass('d-none');
+                    $('#generateOutlineBtn').prop('disabled', false);
+                    return;
+                }
+                
+                $('#outlineContent').val(response.outline);
+                $('#outlineResultContainer').show();
+                $('#generatingIndicator').addClass('d-none');
+                $('#generateOutlineBtn').prop('disabled', false);
+                
+                // Refresh the page to show chapter navigation
+                location.reload();
+            },
+            error: function() {
+                alert('Error generating outline. Please try again.');
+                $('#generatingIndicator').addClass('d-none');
+                $('#generateOutlineBtn').prop('disabled', false);
+            }
+        });
+    });
+    
+    // Save outline
+    $('#saveOutlineForm').submit(function(e) {
+        e.preventDefault();
+        $('#savingIndicator').removeClass('d-none');
+        $('#savedIndicator').addClass('d-none');
+        $('#saveOutlineBtn').prop('disabled', true);
+        
+        $.ajax({
+            type: 'POST',
+            url: '/save_outline',
+            data: $(this).serialize(),
+            success: function() {
+                $('#savingIndicator').addClass('d-none');
+                $('#savedIndicator').removeClass('d-none');
+                $('#saveOutlineBtn').prop('disabled', false);
+                
+                // Hide the saved indicator after 3 seconds
+                setTimeout(function() {
+                    $('#savedIndicator').addClass('d-none');
+                }, 3000);
+            },
+            error: function() {
+                alert('Error saving outline. Please try again.');
+                $('#savingIndicator').addClass('d-none');
+                $('#saveOutlineBtn').prop('disabled', false);
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

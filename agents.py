@@ -9,6 +9,7 @@ class BookAgents:
         self.outline = outline
         self.world_elements = {}  # Track described locations/elements
         self.character_developments = {}  # Track character arcs
+        self.agents = {}  # Store created agents
         
     def _format_outline_context(self) -> str:
         """Format the book outline into a readable context"""
@@ -205,14 +206,16 @@ class BookAgents:
         # User Proxy: Manages the interaction
         user_proxy = autogen.UserProxyAgent(
             name="user_proxy",
-            human_input_mode="TERMINATE",
+            human_input_mode="NEVER",
             code_execution_config={
                 "work_dir": "book_output",
                 "use_docker": False
-            }
+            },
+            is_termination_msg=lambda msg: "FINAL ANSWER:" in msg.get("content", "")
         )
 
-        return {
+        # Store agents in a dictionary
+        self.agents = {
             "story_planner": story_planner,
             "world_builder": world_builder,
             "memory_keeper": memory_keeper,
@@ -221,6 +224,86 @@ class BookAgents:
             "user_proxy": user_proxy,
             "outline_creator": outline_creator
         }
+
+        return self.agents
+    
+    def generate_content(self, agent_name: str, prompt: str) -> str:
+        """Generate content using the specified agent by initiating a chat"""
+        if agent_name not in self.agents:
+            raise ValueError(f"Agent '{agent_name}' not found. Available agents: {list(self.agents.keys())}")
+        
+        user_proxy = self.agents["user_proxy"]
+        agent = self.agents[agent_name]
+        
+        # Define a termination function to detect when the response is complete
+        def is_termination_msg(msg):
+            content = msg.get("content", "")
+            
+            # Different termination conditions based on agent type
+            if agent_name == "outline_creator" and "END OF OUTLINE" in content:
+                return True
+            if agent_name == "writer" and ("SCENE FINAL:" in content or "FINAL ANSWER:" in content):
+                return True
+            if agent_name == "story_planner" and "STORY_ARC:" in content:
+                return True
+            if agent_name == "world_builder" and "WORLD_ELEMENTS:" in content:
+                return True
+            if agent_name == "editor" and "EDITED_SCENE:" in content:
+                return True
+            
+            # General termination for long responses
+            if len(content) > 5000:
+                return True
+            
+            return False
+        
+        # Save the original termination function and temporarily override it
+        original_termination = user_proxy._is_termination_msg
+        user_proxy._is_termination_msg = is_termination_msg
+        
+        # Initiate chat with the agent
+        chat = user_proxy.initiate_chat(
+            agent,
+            message=prompt
+        )
+        
+        # Restore the original termination function
+        user_proxy._is_termination_msg = original_termination
+        
+        # Extract the response from the last assistant message
+        response = chat.chat_history[-1]["content"]
+        
+        # Clean up the response based on agent type
+        if agent_name == "outline_creator":
+            # Extract just the outline part
+            start = response.find("OUTLINE:")
+            end = response.find("END OF OUTLINE")
+            if start != -1 and end != -1:
+                cleaned_response = response[start:end + len("END OF OUTLINE")]
+                return cleaned_response
+        elif agent_name == "writer":
+            # Handle writer's scene format
+            if "SCENE FINAL:" in response:
+                parts = response.split("SCENE FINAL:")
+                if len(parts) > 1:
+                    return parts[1].strip()
+        elif agent_name == "world_builder":
+            # Extract the world elements part
+            start = response.find("WORLD_ELEMENTS:")
+            if start != -1:
+                return response[start:].strip()
+            else:
+                # Try to find any content that looks like world-building
+                for marker in ["Time Period", "Setting:", "Locations:", "Major Locations"]:
+                    if marker in response:
+                        return response
+        elif agent_name == "story_planner":
+            # Extract the story arc part
+            start = response.find("STORY_ARC:")
+            if start != -1:
+                return response[start:].strip()
+        
+        return response
 
     def update_world_element(self, element_name: str, description: str) -> None:
         """Track a new or updated world element"""

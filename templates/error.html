@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}AI Book Writer - Error{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h2 class="h4 mb-0">Error</h2>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    <p>{{ message }}</p>
+                </div>
+                <div class="text-center">
+                    <a href="/" class="btn btn-primary">Return to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,6 +1,7 @@
 # Core dependencies
 autogen>=0.2.0
 typing>=3.7.4
+flask>=2.2.0
 
 # Development dependencies
 pytest>=7.0.0  # For testing

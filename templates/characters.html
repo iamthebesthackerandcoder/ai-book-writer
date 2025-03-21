@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}AI Book Writer - Character Creation{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h2 class="h4 mb-0">Character Creation</h2>
+                <div>
+                    <a href="/world" class="btn btn-light btn-sm">&laquo; Back to World</a>
+                    <a href="/outline" class="btn btn-light btn-sm">Next: Outline &raquo;</a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if not world_theme %}
+                <div class="alert alert-warning">
+                    <strong>Warning:</strong> You need to create a world setting first. <a href="/world" class="alert-link">Go to World Creation</a>.
+                </div>
+                {% else %}
+                <div class="mb-4">
+                    <h3 class="h5">World Setting Context:</h3>
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <p class="mb-0">{{ world_theme[:200] }}{% if world_theme|length > 200 %}...{% endif %}</p>
+                            <button class="btn btn-sm btn-outline-secondary mt-2" type="button" data-bs-toggle="collapse" data-bs-target="#fullWorldSetting">
+                                Show Full World Setting
+                            </button>
+                            <div class="collapse mt-2" id="fullWorldSetting">
+                                <div class="card card-body">
+                                    {{ world_theme }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="charactersForm" action="/characters" method="post">
+                    <div class="mb-3">
+                        <label for="numCharacters" class="form-label">How many characters do you want to create?</label>
+                        <input type="number" class="form-control" id="numCharacters" name="num_characters" min="1" max="10" value="3">
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary" id="generateCharactersBtn">Generate Characters</button>
+                    </div>
+                </form>
+                
+                <div id="generatingIndicator" class="alert alert-info mt-3 d-none">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border spinner-border-sm me-2" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div>Generating characters... This may take a minute.</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-12" id="charactersResultContainer" {% if not characters %}style="display: none;"{% endif %}>
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h3 class="h5 mb-0">Your Characters</h3>
+            </div>
+            <div class="card-body">
+                <form id="saveCharactersForm" action="/save_characters" method="post">
+                    <div class="mb-3">
+                        <label for="charactersContent" class="form-label">Edit your characters if needed:</label>
+                        <textarea class="form-control" id="charactersContent" name="characters" rows="15">{{ characters }}</textarea>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-success" id="saveCharactersBtn">Save Changes</button>
+                        <a href="/outline" class="btn btn-primary">Continue to Outline</a>
+                    </div>
+                </form>
+                
+                <div id="savingIndicator" class="alert alert-info mt-3 d-none">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border spinner-border-sm me-2" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div>Saving changes...</div>
+                    </div>
+                </div>
+                
+                <div id="savedIndicator" class="alert alert-success mt-3 d-none">
+                    <div>Characters saved successfully!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Generate characters
+    $('#charactersForm').submit(function(e) {
+        e.preventDefault();
+        $('#generatingIndicator').removeClass('d-none');
+        $('#generateCharactersBtn').prop('disabled', true);
+        
+        $.ajax({
+            type: 'POST',
+            url: '/characters',
+            data: $(this).serialize(),
+            success: function(response) {
+                if (response.error) {
+                    alert(response.error);
+                    $('#generatingIndicator').addClass('d-none');
+                    $('#generateCharactersBtn').prop('disabled', false);
+                    return;
+                }
+                
+                $('#charactersContent').val(response.characters);
+                $('#charactersResultContainer').show();
+                $('#generatingIndicator').addClass('d-none');
+                $('#generateCharactersBtn').prop('disabled', false);
+            },
+            error: function() {
+                alert('Error generating characters. Please try again.');
+                $('#generatingIndicator').addClass('d-none');
+                $('#generateCharactersBtn').prop('disabled', false);
+            }
+        });
+    });
+    
+    // Save characters
+    $('#saveCharactersForm').submit(function(e) {
+        e.preventDefault();
+        $('#savingIndicator').removeClass('d-none');
+        $('#savedIndicator').addClass('d-none');
+        $('#saveCharactersBtn').prop('disabled', true);
+        
+        $.ajax({
+            type: 'POST',
+            url: '/save_characters',
+            data: $(this).serialize(),
+            success: function() {
+                $('#savingIndicator').addClass('d-none');
+                $('#savedIndicator').removeClass('d-none');
+                $('#saveCharactersBtn').prop('disabled', false);
+                
+                // Hide the saved indicator after 3 seconds
+                setTimeout(function() {
+                    $('#savedIndicator').addClass('d-none');
+                }, 3000);
+            },
+            error: function() {
+                alert('Error saving characters. Please try again.');
+                $('#savingIndicator').addClass('d-none');
+                $('#saveCharactersBtn').prop('disabled', false);
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

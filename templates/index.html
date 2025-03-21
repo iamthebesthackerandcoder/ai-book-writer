@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}AI Book Writer - Home{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="h4 mb-0">Welcome to AI Book Writer</h2>
+            </div>
+            <div class="card-body">
+                <h3 class="h5 mb-3">Write Your Book with AI Assistance</h3>
+                
+                <p>This tool guides you through the process of writing a book with AI help. Follow these steps:</p>
+                
+                <ol class="list-group list-group-numbered mb-4">
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                            <div class="fw-bold">Create World Setting</div>
+                            Define the setting, time period, and environment for your story
+                        </div>
+                        <a href="/world" class="btn btn-sm btn-outline-primary">Start</a>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                            <div class="fw-bold">Develop Characters</div>
+                            Create the characters that will populate your story world
+                        </div>
+                        <a href="/characters" class="btn btn-sm btn-outline-primary">Start</a>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                            <div class="fw-bold">Generate Book Outline</div>
+                            Create a chapter-by-chapter outline of your story
+                        </div>
+                        <a href="/outline" class="btn btn-sm btn-outline-primary">Start</a>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                            <div class="fw-bold">Write Chapters</div>
+                            Generate and edit each chapter of your book
+                        </div>
+                        <a href="/outline" class="btn btn-sm btn-outline-primary">Start</a>
+                    </li>
+                </ol>
+                
+                <div class="alert alert-info">
+                    <h4 class="h6">About This Tool</h4>
+                    <p class="mb-0">This is an open-source tool that uses AI to help you write a book. All content is generated locally on your computer and saved in the <code>book_output</code> folder. You can edit, modify, and export your book at any time.</p>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <a href="/world" class="btn btn-lg btn-primary px-5">Begin Your Book Journey</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

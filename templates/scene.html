@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}AI Book Writer - Scene Generator for Chapter {{ chapter.chapter_number }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h2 class="h4 mb-0">Scene Generator for Chapter {{ chapter.chapter_number }}: {{ chapter.title }}</h2>
+                <a href="/chapter/{{ chapter.chapter_number }}" class="btn btn-light btn-sm">Back to Chapter</a>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <h3 class="h5">Chapter Outline:</h3>
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <p>{{ chapter.prompt }}</p>
+                            </div>
+                        </div>
+                        
+                        <form id="sceneForm" action="/scene/{{ chapter.chapter_number }}" method="post">
+                            <div class="mb-3">
+                                <label for="sceneDescription" class="form-label">Describe the scene you want to generate (optional):</label>
+                                <textarea class="form-control" id="sceneDescription" name="scene_description" rows="3" 
+                                          placeholder="E.g., A tense conversation between the protagonist and antagonist in the library"></textarea>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary" id="generateSceneBtn">Generate Scene</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header bg-info text-white">
+                                Existing Scenes
+                            </div>
+                            <div class="list-group list-group-flush" id="scenesList">
+                                {% if scenes %}
+                                    {% for scene in scenes %}
+                                    <button type="button" class="list-group-item list-group-item-action scene-item"
+                                            data-scene="{{ scene.content }}" data-bs-toggle="modal" data-bs-target="#sceneModal">
+                                        Scene {{ loop.index }}: {{ scene.title or 'Untitled Scene' }}
+                                    </button>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="list-group-item text-muted">No scenes generated yet</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <a href="/chapter/{{ chapter.chapter_number }}" class="btn btn-outline-primary w-100">Return to Chapter</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="generatingIndicator" class="alert alert-info mt-3 d-none">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border spinner-border-sm me-2" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div>Generating scene... This may take a few minutes.</div>
+                    </div>
+                </div>
+                
+                <div id="sceneResultContainer" class="d-none">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h3 class="h5 mb-0">Generated Scene</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <textarea class="form-control" id="sceneContent" rows="15" readonly></textarea>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-primary" id="copySceneBtn">Copy to Clipboard</button>
+                                <a href="/chapter/{{ chapter.chapter_number }}" class="btn btn-primary">Back to Chapter</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scene Modal -->
+<div class="modal fade" id="sceneModal" tabindex="-1" aria-labelledby="sceneModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sceneModalLabel">Scene Content</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <textarea class="form-control" id="modalSceneContent" rows="15" readonly></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" id="modalCopyBtn">Copy to Clipboard</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Generate scene
+    $('#sceneForm').submit(function(e) {
+        e.preventDefault();
+        $('#generatingIndicator').removeClass('d-none');
+        $('#generateSceneBtn').prop('disabled', true);
+        $('#sceneResultContainer').addClass('d-none');
+        
+        $.ajax({
+            type: 'POST',
+            url: '/scene/{{ chapter.chapter_number }}',
+            data: $(this).serialize(),
+            success: function(response) {
+                $('#sceneContent').val(response.scene_content);
+                $('#sceneResultContainer').removeClass('d-none');
+                $('#generatingIndicator').addClass('d-none');
+                $('#generateSceneBtn').prop('disabled', false);
+                
+                // Add the new scene to the list
+                if ($('#scenesList .text-muted').length) {
+                    $('#scenesList').empty();
+                }
+                
+                const sceneBrief = response.scene_content.substring(0, 30) + '...';
+                const newSceneItem = '<button type="button" class="list-group-item list-group-item-action scene-item" ' +
+                                    'data-scene="' + response.scene_content.replace(/"/g, '&quot;') + '" ' +
+                                    'data-bs-toggle="modal" data-bs-target="#sceneModal">' +
+                                    'Scene ' + ($('#scenesList .scene-item').length + 1) + ': ' + sceneBrief +
+                                    '</button>';
+                $('#scenesList').append(newSceneItem);
+                bindSceneItemEvents();
+            },
+            error: function() {
+                alert('Error generating scene. Please try again.');
+                $('#generatingIndicator').addClass('d-none');
+                $('#generateSceneBtn').prop('disabled', false);
+            }
+        });
+    });
+    
+    // Copy scene to clipboard
+    $('#copySceneBtn').click(function() {
+        const sceneContent = $('#sceneContent').val();
+        copyToClipboard(sceneContent);
+        alert('Scene copied to clipboard!');
+    });
+    
+    // Modal copy button
+    $('#modalCopyBtn').click(function() {
+        const sceneContent = $('#modalSceneContent').val();
+        copyToClipboard(sceneContent);
+        alert('Scene copied to clipboard!');
+    });
+    
+    // Function to bind events to scene items
+    function bindSceneItemEvents() {
+        $('.scene-item').off('click').click(function() {
+            const sceneContent = $(this).data('scene');
+            $('#modalSceneContent').val(sceneContent);
+        });
+    }
+    
+    // Initial binding
+    bindSceneItemEvents();
+    
+    // Helper function to copy to clipboard
+    function copyToClipboard(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+    }
+});
+</script>
+{% endblock %} 

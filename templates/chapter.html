@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}AI Book Writer - Chapter {{ chapter.chapter_number }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h2 class="h4 mb-0">Chapter {{ chapter.chapter_number }}: {{ chapter.title }}</h2>
+                <div>
+                    <a href="/outline" class="btn btn-light btn-sm">&laquo; Back to Outline</a>
+                    {% if chapter.chapter_number > 1 %}
+                    <a href="/chapter/{{ chapter.chapter_number - 1 }}" class="btn btn-light btn-sm">&laquo; Previous Chapter</a>
+                    {% endif %}
+                    {% if chapter.chapter_number < chapters|length %}
+                    <a href="/chapter/{{ chapter.chapter_number + 1 }}" class="btn btn-light btn-sm">Next Chapter &raquo;</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <h3 class="h5">Chapter Outline:</h3>
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <p>{{ chapter.prompt }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-grid gap-2">
+                            <a href="/scene/{{ chapter.chapter_number }}" class="btn btn-outline-primary">Generate a Scene</a>
+                            {% if chapter_content %}
+                            <button type="button" class="btn btn-outline-primary" id="regenerateChapterBtn">Regenerate Chapter</button>
+                            {% else %}
+                            <button type="button" class="btn btn-primary" id="generateChapterBtn">Generate Full Chapter</button>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="card mt-3">
+                            <div class="card-header bg-info text-white">
+                                Chapter Navigation
+                            </div>
+                            <div class="list-group list-group-flush">
+                                {% for ch in chapters %}
+                                <a href="/chapter/{{ ch.chapter_number }}" 
+                                   class="list-group-item list-group-item-action {% if ch.chapter_number == chapter.chapter_number %}active{% endif %}">
+                                    Chapter {{ ch.chapter_number }}: {{ ch.title }}
+                                </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="generatingIndicator" class="alert alert-info mt-3 d-none">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border spinner-border-sm me-2" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div>Generating chapter content... This may take several minutes.</div>
+                    </div>
+                </div>
+                
+                <div id="chapterContentContainer" {% if not chapter_content %}class="d-none"{% endif %}>
+                    <form id="saveChapterForm" action="/save_chapter/{{ chapter.chapter_number }}" method="post">
+                        <div class="mb-3">
+                            <h3 class="h5">Chapter Content:</h3>
+                            <textarea class="form-control" id="chapterContent" name="chapter_content" rows="20">{{ chapter_content }}</textarea>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-success" id="saveChapterBtn">Save Chapter</button>
+                            {% if chapter.chapter_number < chapters|length %}
+                            <a href="/chapter/{{ chapter.chapter_number + 1 }}" class="btn btn-primary">Next Chapter &raquo;</a>
+                            {% else %}
+                            <a href="/outline" class="btn btn-primary">Back to Outline</a>
+                            {% endif %}
+                        </div>
+                    </form>
+                    
+                    <div id="savingIndicator" class="alert alert-info mt-3 d-none">
+                        <div class="d-flex align-items-center">
+                            <div class="spinner-border spinner-border-sm me-2" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <div>Saving chapter...</div>
+                        </div>
+                    </div>
+                    
+                    <div id="savedIndicator" class="alert alert-success mt-3 d-none">
+                        <div>Chapter saved successfully!</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Generate chapter
+    $('#generateChapterBtn, #regenerateChapterBtn').click(function() {
+        $('#generatingIndicator').removeClass('d-none');
+        $(this).prop('disabled', true);
+        
+        $.ajax({
+            type: 'POST',
+            url: '/chapter/{{ chapter.chapter_number }}',
+            success: function(response) {
+                $('#chapterContent').val(response.chapter_content);
+                $('#chapterContentContainer').removeClass('d-none');
+                $('#generatingIndicator').addClass('d-none');
+                $('#generateChapterBtn, #regenerateChapterBtn').prop('disabled', false);
+            },
+            error: function() {
+                alert('Error generating chapter. Please try again.');
+                $('#generatingIndicator').addClass('d-none');
+                $('#generateChapterBtn, #regenerateChapterBtn').prop('disabled', false);
+            }
+        });
+    });
+    
+    // Save chapter
+    $('#saveChapterForm').submit(function(e) {
+        e.preventDefault();
+        $('#savingIndicator').removeClass('d-none');
+        $('#savedIndicator').addClass('d-none');
+        $('#saveChapterBtn').prop('disabled', true);
+        
+        $.ajax({
+            type: 'POST',
+            url: '/save_chapter/{{ chapter.chapter_number }}',
+            data: $(this).serialize(),
+            success: function() {
+                $('#savingIndicator').addClass('d-none');
+                $('#savedIndicator').removeClass('d-none');
+                $('#saveChapterBtn').prop('disabled', false);
+                
+                // Hide the saved indicator after 3 seconds
+                setTimeout(function() {
+                    $('#savedIndicator').addClass('d-none');
+                }, 3000);
+            },
+            error: function() {
+                alert('Error saving chapter. Please try again.');
+                $('#savingIndicator').addClass('d-none');
+                $('#saveChapterBtn').prop('disabled', false);
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

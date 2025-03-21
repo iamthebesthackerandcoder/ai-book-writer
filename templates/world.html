@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}AI Book Writer - World Setting{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h2 class="h4 mb-0">Create World Setting</h2>
+                <a href="/characters" class="btn btn-light btn-sm">Next: Characters &raquo;</a>
+            </div>
+            <div class="card-body">
+                <form id="worldForm" action="/world" method="post">
+                    <div class="mb-3">
+                        <label for="topic" class="form-label">Enter a general topic or theme for your book:</label>
+                        <input type="text" class="form-control" id="topic" name="topic" required 
+                               value="{{ topic }}" placeholder="e.g., fantasy adventure in a medieval setting">
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary" id="generateWorldBtn">Generate World Setting</button>
+                    </div>
+                </form>
+                
+                <div id="generatingIndicator" class="alert alert-info mt-3 d-none">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border spinner-border-sm me-2" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div>Generating world setting... This may take a minute.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-12" id="worldResultContainer" {% if not world_theme %}style="display: none;"{% endif %}>
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h3 class="h5 mb-0">Your World Setting</h3>
+            </div>
+            <div class="card-body">
+                <form id="saveWorldForm" action="/save_world" method="post">
+                    <div class="mb-3">
+                        <label for="worldTheme" class="form-label">Edit your world setting if needed:</label>
+                        <textarea class="form-control" id="worldTheme" name="world_theme" rows="12">{{ world_theme }}</textarea>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-success" id="saveWorldBtn">Save Changes</button>
+                        <a href="/characters" class="btn btn-primary">Continue to Characters</a>
+                    </div>
+                </form>
+                
+                <div id="savingIndicator" class="alert alert-info mt-3 d-none">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border spinner-border-sm me-2" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div>Saving changes...</div>
+                    </div>
+                </div>
+                
+                <div id="savedIndicator" class="alert alert-success mt-3 d-none">
+                    <div>World setting saved successfully!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Generate world theme
+    $('#worldForm').submit(function(e) {
+        e.preventDefault();
+        $('#generatingIndicator').removeClass('d-none');
+        $('#generateWorldBtn').prop('disabled', true);
+        
+        $.ajax({
+            type: 'POST',
+            url: '/world',
+            data: $(this).serialize(),
+            success: function(response) {
+                $('#worldTheme').val(response.world_theme);
+                $('#worldResultContainer').show();
+                $('#generatingIndicator').addClass('d-none');
+                $('#generateWorldBtn').prop('disabled', false);
+            },
+            error: function() {
+                alert('Error generating world theme. Please try again.');
+                $('#generatingIndicator').addClass('d-none');
+                $('#generateWorldBtn').prop('disabled', false);
+            }
+        });
+    });
+    
+    // Save world theme
+    $('#saveWorldForm').submit(function(e) {
+        e.preventDefault();
+        $('#savingIndicator').removeClass('d-none');
+        $('#savedIndicator').addClass('d-none');
+        $('#saveWorldBtn').prop('disabled', true);
+        
+        $.ajax({
+            type: 'POST',
+            url: '/save_world',
+            data: $(this).serialize(),
+            success: function() {
+                $('#savingIndicator').addClass('d-none');
+                $('#savedIndicator').removeClass('d-none');
+                $('#saveWorldBtn').prop('disabled', false);
+                
+                // Hide the saved indicator after 3 seconds
+                setTimeout(function() {
+                    $('#savedIndicator').addClass('d-none');
+                }, 3000);
+            },
+            error: function() {
+                alert('Error saving world theme. Please try again.');
+                $('#savingIndicator').addClass('d-none');
+                $('#saveWorldBtn').prop('disabled', false);
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 
