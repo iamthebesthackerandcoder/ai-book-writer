@@ -197,37 +197,9 @@ def save_world():
     
     return jsonify({'success': True})
 
-@app.route('/characters', methods=['GET', 'POST'])
+@app.route('/characters', methods=['GET'])
 def characters():
-    """Generate or display characters"""
-    if request.method == 'POST':
-        num_characters = int(request.form.get('num_characters', 3))
-        world_theme = session.get('world_theme', '')
-        
-        if not world_theme:
-            return jsonify({'error': 'World theme not found. Please generate a world theme first.'})
-        
-        # Initialize agents for character creation
-        book_agents = BookAgents(agent_config)
-        agents = book_agents.create_agents(world_theme, 0)
-        
-        # Generate characters using the character_generator agent
-        characters_content = book_agents.generate_content(
-            "character_generator",
-            prompts.CHARACTER_CREATION_PROMPT.format(
-                world_theme=world_theme,
-                num_characters=num_characters
-            )
-        )
-        
-        # Clean and save characters to session and file
-        characters_content = characters_content.strip()
-        session['characters'] = characters_content
-        with open('book_output/characters.txt', 'w') as f:
-            f.write(characters_content)
-        
-        return jsonify({'characters': characters_content})
-    
+    """Display characters or character creation chat interface"""
     # GET request - show characters page with existing characters if available
     characters_content = ''
     if os.path.exists('book_output/characters.txt'):
@@ -703,6 +675,141 @@ def scene(chapter_number):
     return render_template('scene.html', 
                            chapter=chapter_data,
                            scenes=scenes)
+
+@app.route('/characters_chat', methods=['POST'])
+def characters_chat():
+    """Handle ongoing chat for character creation"""
+    data = request.json
+    user_message = data.get('message', '')
+    chat_history = data.get('chat_history', [])
+    world_theme = session.get('world_theme', '')
+    
+    # Ensure we have a world theme
+    if not world_theme:
+        if os.path.exists('book_output/world.txt'):
+            with open('book_output/world.txt', 'r') as f:
+                world_theme = f.read().strip()
+            session['world_theme'] = world_theme
+        else:
+            return jsonify({'error': 'World theme not found. Please complete world building first.'})
+    
+    # Initialize agents for character creation
+    book_agents = BookAgents(agent_config)
+    agents = book_agents.create_agents(world_theme, 0)
+    
+    # Generate response using the direct chat method
+    ai_response = book_agents.generate_chat_response_characters(chat_history, world_theme, user_message)
+    
+    # Clean the response
+    ai_response = ai_response.strip()
+    
+    return jsonify({
+        'message': ai_response
+    })
+
+@app.route('/characters_chat_stream', methods=['POST'])
+def characters_chat_stream():
+    """Handle ongoing chat for character creation with streaming response"""
+    data = request.json
+    user_message = data.get('message', '')
+    chat_history = data.get('chat_history', [])
+    world_theme = session.get('world_theme', '')
+    
+    # Ensure we have a world theme
+    if not world_theme:
+        if os.path.exists('book_output/world.txt'):
+            with open('book_output/world.txt', 'r') as f:
+                world_theme = f.read().strip()
+            session['world_theme'] = world_theme
+        else:
+            return jsonify({'error': 'World theme not found. Please complete world building first.'})
+    
+    # Initialize agents for character creation
+    book_agents = BookAgents(agent_config)
+    agents = book_agents.create_agents(world_theme, 0)
+    
+    # Generate streaming response
+    stream = book_agents.generate_chat_response_characters_stream(chat_history, world_theme, user_message)
+    
+    def generate():
+        # Send a heartbeat to establish the connection
+        yield "data: {\"content\": \"\"}\n\n"
+        
+        # Iterate through the stream to get each chunk
+        for chunk in stream:
+            if chunk.choices and len(chunk.choices) > 0 and chunk.choices[0].delta and chunk.choices[0].delta.content is not None:
+                content = chunk.choices[0].delta.content
+                # Send each token as it arrives
+                yield f"data: {json.dumps({'content': content})}\n\n"
+        
+        # Send completion marker
+        yield f"data: {json.dumps({'content': '[DONE]'})}\n\n"
+    
+    return Response(stream_with_context(generate()), 
+                   mimetype='text/event-stream',
+                   headers={
+                       'Cache-Control': 'no-cache',
+                       'X-Accel-Buffering': 'no'
+                   })
+
+@app.route('/finalize_characters_stream', methods=['POST'])
+def finalize_characters_stream():
+    """Finalize the characters based on chat history with streaming response"""
+    data = request.json
+    chat_history = data.get('chat_history', [])
+    num_characters = data.get('num_characters', 3)
+    world_theme = session.get('world_theme', '')
+    
+    # Ensure we have a world theme
+    if not world_theme:
+        if os.path.exists('book_output/world.txt'):
+            with open('book_output/world.txt', 'r') as f:
+                world_theme = f.read().strip()
+            session['world_theme'] = world_theme
+        else:
+            return jsonify({'error': 'World theme not found. Please complete world building first.'})
+    
+    # Initialize agents for character creation
+    book_agents = BookAgents(agent_config)
+    agents = book_agents.create_agents(world_theme, 0)
+    
+    # Generate the final characters using streaming
+    stream = book_agents.generate_final_characters_stream(chat_history, world_theme, num_characters)
+    
+    def generate():
+        # Send a heartbeat to establish the connection
+        yield "data: {\"content\": \"\"}\n\n"
+        
+        # Collect all chunks to save the complete response
+        collected_content = []
+        
+        # Iterate through the stream to get each chunk
+        for chunk in stream:
+            if chunk.choices and len(chunk.choices) > 0 and chunk.choices[0].delta and chunk.choices[0].delta.content is not None:
+                content = chunk.choices[0].delta.content
+                collected_content.append(content)
+                # Send each token as it arrives
+                yield f"data: {json.dumps({'content': content})}\n\n"
+        
+        # Combine all chunks for the complete content
+        complete_content = ''.join(collected_content)
+        
+        # Clean and save characters to session and file once streaming is complete
+        characters_content = complete_content.strip()
+        
+        session['characters'] = characters_content
+        with open('book_output/characters.txt', 'w') as f:
+            f.write(characters_content)
+        
+        # Send completion marker
+        yield f"data: {json.dumps({'content': '[DONE]'})}\n\n"
+    
+    return Response(stream_with_context(generate()), 
+                   mimetype='text/event-stream',
+                   headers={
+                       'Cache-Control': 'no-cache',
+                       'X-Accel-Buffering': 'no'
+                   })
 
 if __name__ == '__main__':
     app.run(debug=True) 

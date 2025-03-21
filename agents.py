@@ -457,3 +457,100 @@ class BookAgents:
                 developments.append(f"{i}. {dev}")
                 
         return "\n".join(developments)
+
+    def generate_chat_response_characters(self, chat_history, world_theme, user_message):
+        """Generate a chat response about character creation."""
+        # Format messages for the API call
+        messages = [
+            {"role": "system", "content": self.system_prompts["character_generator"]}
+        ]
+        
+        # Add world theme context
+        messages.append({
+            "role": "system", 
+            "content": f"The book takes place in the following world:\n\n{world_theme}"
+        })
+        
+        # Add conversation context from chat history
+        for message in chat_history:
+            if message['role'] == 'user':
+                messages.append({"role": "user", "content": message['content']})
+            else:
+                messages.append({"role": "assistant", "content": message['content']})
+        
+        # Add the latest user message
+        messages.append({"role": "user", "content": user_message})
+        
+        # Make the API call
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            temperature=0.7
+        ).choices[0].message.content
+        
+        return response
+
+    def generate_chat_response_characters_stream(self, chat_history, world_theme, user_message):
+        """Generate a streaming chat response about character creation."""
+        # Format messages for the API call
+        messages = [
+            {"role": "system", "content": self.system_prompts["character_generator"]}
+        ]
+        
+        # Add world theme context
+        messages.append({
+            "role": "system", 
+            "content": f"The book takes place in the following world:\n\n{world_theme}"
+        })
+        
+        # Add conversation context from chat history
+        for message in chat_history:
+            if message['role'] == 'user':
+                messages.append({"role": "user", "content": message['content']})
+            else:
+                messages.append({"role": "assistant", "content": message['content']})
+        
+        # Add the latest user message
+        messages.append({"role": "user", "content": user_message})
+        
+        # Make the API call with streaming enabled
+        return self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            temperature=0.7,
+            stream=True
+        )
+
+    def generate_final_characters_stream(self, chat_history, world_theme, num_characters=3):
+        """Generate the final character profiles based on chat history using streaming."""
+        # Format messages for the API call
+        messages = [
+            {"role": "system", "content": self.system_prompts["character_generator"]}
+        ]
+        
+        # Add world theme context
+        messages.append({
+            "role": "system", 
+            "content": f"The book takes place in the following world:\n\n{world_theme}"
+        })
+        
+        # Add conversation context from chat history
+        for message in chat_history:
+            if message['role'] == 'user':
+                messages.append({"role": "user", "content": message['content']})
+            else:
+                messages.append({"role": "assistant", "content": message['content']})
+        
+        # Add the final instruction to create the complete character profiles
+        messages.append({
+            "role": "user", 
+            "content": f"Based on our conversation, please create {num_characters} detailed character profiles for the book. Format each character with Name, Role, Physical Description, Background, Personality, and Goals/Motivations. This will be the final character list for the book."
+        })
+        
+        # Make the API call with streaming enabled
+        return self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            temperature=0.7,
+            stream=True
+        )

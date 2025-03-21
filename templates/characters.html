@@ -36,28 +36,55 @@
                     </div>
                 </div>
 
-                <form id="charactersForm" action="/characters" method="post">
-                    <div class="mb-3">
-                        <label for="numCharacters" class="form-label">How many characters do you want to create?</label>
-                        <input type="number" class="form-control" id="numCharacters" name="num_characters" min="1" max="10" value="3">
-                    </div>
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary" id="generateCharactersBtn">Generate Characters</button>
-                    </div>
-                </form>
+                <p class="lead">Chat with the AI to develop your book's characters. Describe your ideas for characters, answer questions, and explore different personality types together.</p>
                 
-                <div id="generatingIndicator" class="alert alert-info mt-3 d-none">
-                    <div class="d-flex align-items-center">
-                        <div class="spinner-border spinner-border-sm me-2" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <div>Generating characters... This may take a minute.</div>
-                    </div>
+                <div class="mb-3">
+                    <label for="numCharacters" class="form-label">How many characters would you like to create?</label>
+                    <input type="number" class="form-control" id="numCharacters" name="num_characters" min="1" max="10" value="3">
                 </div>
                 {% endif %}
             </div>
         </div>
     </div>
+    
+    {% if world_theme %}
+    <!-- Chat interface -->
+    <div class="col-12 mb-4" id="chatContainer">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="h5 mb-0">Character Development Chat</h3>
+            </div>
+            <div class="card-body">
+                <div id="chatMessages" class="p-3 mb-3 border rounded" style="height: 400px; overflow-y: auto;">
+                    <!-- Chat messages will appear here -->
+                    {% if not characters %}
+                    <div class="text-center p-3">
+                        <p>Tell me about the characters you'd like to create for your book. What kind of protagonists, antagonists, or supporting characters are you thinking of?</p>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="d-flex">
+                    <input type="text" id="userMessage" class="form-control me-2" placeholder="Type your ideas about characters you want to create...">
+                    <button id="sendMessageBtn" class="btn btn-primary">Send</button>
+                </div>
+                
+                <div class="mt-3">
+                    <button id="finalizeChatBtn" class="btn btn-success">Finalize Characters</button>
+                </div>
+                
+                <div id="chatTypingIndicator" class="alert alert-info mt-3 d-none">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border spinner-border-sm me-2" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div>AI is thinking...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
     
     <div class="col-12" id="charactersResultContainer" {% if not characters %}style="display: none;"{% endif %}>
         <div class="card">
@@ -95,36 +122,248 @@
 
 <script>
 $(document).ready(function() {
-    // Generate characters
-    $('#charactersForm').submit(function(e) {
-        e.preventDefault();
-        $('#generatingIndicator').removeClass('d-none');
-        $('#generateCharactersBtn').prop('disabled', true);
+    // Chat history
+    let chatHistory = [];
+    
+    // Send user message
+    $('#sendMessageBtn').click(function() {
+        sendUserMessage();
+    });
+    
+    // Also send message when user presses Enter
+    $('#userMessage').keypress(function(e) {
+        if (e.which === 13) {
+            sendUserMessage();
+            e.preventDefault();
+        }
+    });
+    
+    function sendUserMessage() {
+        const message = $('#userMessage').val().trim();
+        if (!message) return;
         
-        $.ajax({
-            type: 'POST',
-            url: '/characters',
-            data: $(this).serialize(),
-            success: function(response) {
-                if (response.error) {
-                    alert(response.error);
-                    $('#generatingIndicator').addClass('d-none');
-                    $('#generateCharactersBtn').prop('disabled', false);
-                    return;
-                }
-                
-                $('#charactersContent').val(response.characters);
-                $('#charactersResultContainer').show();
-                $('#generatingIndicator').addClass('d-none');
-                $('#generateCharactersBtn').prop('disabled', false);
+        // Add user message to chat
+        addMessageToChat('user', message);
+        
+        // Clear input field
+        $('#userMessage').val('');
+        
+        // Show AI is thinking
+        $('#chatTypingIndicator').removeClass('d-none');
+        
+        // Update chat history
+        chatHistory.push({role: 'user', content: message});
+        
+        // Create a message div for the AI response
+        const messageDiv = $('<div>').addClass('mb-3 text-start');
+        const messageBubble = $('<div>')
+            .addClass('d-inline-block bg-light p-2 rounded-3')
+            .css('max-width', '80%')
+            .html('<span class="typing-cursor">▌</span>');
+        messageDiv.append(messageBubble);
+        $('#chatMessages').append(messageDiv);
+        
+        // Scroll to bottom
+        $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
+        
+        // Prepare request data
+        const requestData = {
+            message: message,
+            chat_history: chatHistory.slice(0, -1) // Exclude current message
+        };
+        
+        // Initialize response content
+        let responseContent = '';
+        
+        // Make the streaming request with fetch
+        fetch('/characters_chat_stream', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
             },
-            error: function() {
-                alert('Error generating characters. Please try again.');
-                $('#generatingIndicator').addClass('d-none');
-                $('#generateCharactersBtn').prop('disabled', false);
+            body: JSON.stringify(requestData)
+        }).then(response => {
+            // Use a ReadableStream to process the streaming response
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            
+            function readStream() {
+                return reader.read().then(({ value, done }) => {
+                    if (done) {
+                        // End of stream
+                        $('#chatTypingIndicator').addClass('d-none');
+                        // Update chat history with complete response
+                        chatHistory.push({role: 'ai', content: responseContent});
+                        // Remove typing cursor
+                        messageBubble.find('.typing-cursor').remove();
+                        return;
+                    }
+                    
+                    // Decode the chunk
+                    const chunk = decoder.decode(value);
+                    
+                    // Process each event in the chunk
+                    chunk.split('\n\n').forEach(event => {
+                        if (event.startsWith('data: ')) {
+                            try {
+                                const jsonData = event.substring(6); // Remove 'data: ' prefix
+                                const data = JSON.parse(jsonData);
+                                
+                                if (data.content === '[DONE]') {
+                                    // This will be handled by the done flag
+                                    return;
+                                }
+                                
+                                // Append new content to response
+                                responseContent += data.content;
+                                
+                                // Update the message bubble with formatted content
+                                messageBubble.html(formatMessage(responseContent) + '<span class="typing-cursor">▌</span>');
+                                
+                                // Scroll to bottom as content arrives
+                                $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
+                            } catch (e) {
+                                console.error('Error parsing JSON:', e, jsonData);
+                            }
+                        }
+                    });
+                    
+                    // Continue reading
+                    return readStream();
+                });
             }
+            
+            // Start reading the stream
+            return readStream();
+        }).catch(error => {
+            console.error('Fetch error:', error);
+            $('#chatTypingIndicator').addClass('d-none');
+            addMessageToChat('system', 'Error streaming response. Please try again.');
+        });
+    }
+    
+    // Finalize characters
+    $('#finalizeChatBtn').click(function() {
+        // Show AI is thinking
+        $('#chatTypingIndicator').removeClass('d-none');
+        
+        // Disable button
+        $(this).prop('disabled', true);
+        
+        // Prepare the textarea in the result container
+        $('#charactersContent').val('');
+        
+        // Show result container
+        $('#charactersResultContainer').show();
+        
+        // Create a typing cursor for streaming effect
+        let charactersText = '';
+        const charactersTextarea = $('#charactersContent');
+        charactersTextarea.val('');
+        
+        // Make a streaming request for the final characters
+        fetch('/finalize_characters_stream', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                chat_history: chatHistory,
+                num_characters: $('#numCharacters').val()
+            })
+        }).then(response => {
+            // Process the streaming response
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            
+            function readStream() {
+                return reader.read().then(({ value, done }) => {
+                    if (done) {
+                        // End of stream
+                        $('#chatTypingIndicator').addClass('d-none');
+                        $('#finalizeChatBtn').prop('disabled', false);
+                        $('#chatContainer').hide();
+                        return;
+                    }
+                    
+                    // Decode the chunk
+                    const chunk = decoder.decode(value);
+                    
+                    // Process each event in the chunk
+                    chunk.split('\n\n').forEach(event => {
+                        if (event.startsWith('data: ')) {
+                            try {
+                                const jsonData = event.substring(6); // Remove 'data: ' prefix
+                                const data = JSON.parse(jsonData);
+                                
+                                if (data.content === '[DONE]') {
+                                    // Streaming complete
+                                    return;
+                                }
+                                
+                                // Append new content
+                                charactersText += data.content;
+                                
+                                // Update the textarea with all content so far
+                                charactersTextarea.val(charactersText);
+                                
+                                // Scroll textarea to bottom to follow updates
+                                charactersTextarea.scrollTop(charactersTextarea[0].scrollHeight);
+                            } catch (e) {
+                                console.error('Error parsing JSON:', e, jsonData);
+                            }
+                        }
+                    });
+                    
+                    // Continue reading
+                    return readStream();
+                });
+            }
+            
+            // Start reading the stream
+            return readStream();
+        }).catch(error => {
+            console.error('Fetch error for final characters:', error);
+            $('#chatTypingIndicator').addClass('d-none');
+            $('#finalizeChatBtn').prop('disabled', false);
+            alert('Error finalizing characters. Please try again.');
         });
     });
+    
+    // Add message to chat display
+    function addMessageToChat(sender, message) {
+        const messageDiv = $('<div>').addClass('mb-3');
+        
+        if (sender === 'user') {
+            messageDiv.addClass('text-end');
+            const messageBubble = $('<div>').addClass('d-inline-block bg-primary text-white p-2 rounded-3')
+                                            .css('max-width', '80%')
+                                            .html(formatMessage(message));
+            messageDiv.append(messageBubble);
+        } else if (sender === 'ai') {
+            messageDiv.addClass('text-start');
+            const messageBubble = $('<div>').addClass('d-inline-block bg-light p-2 rounded-3')
+                                            .css('max-width', '80%')
+                                            .html(formatMessage(message));
+            messageDiv.append(messageBubble);
+        } else {
+            // System message
+            messageDiv.addClass('text-center');
+            const messageBubble = $('<div>').addClass('d-inline-block bg-warning p-2 rounded-3')
+                                            .text(message);
+            messageDiv.append(messageBubble);
+        }
+        
+        $('#chatMessages').append(messageDiv);
+        
+        // Scroll to bottom
+        $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
+    }
+    
+    // Format message with line breaks
+    function formatMessage(message) {
+        return message.replace(/\n/g, '<br>');
+    }
     
     // Save characters
     $('#saveCharactersForm').submit(function(e) {
