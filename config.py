@@ -7,7 +7,7 @@ def get_config(local_url: str = "http://localhost:1234/v1") -> Dict:
     
     # Basic config for local LLM
     config_list = [{
-        'model': 'mistralai_mistral-small-3.1-24b-instruct-2503',
+        'model': 'gemma-3-12b-it',
         'base_url': local_url,
         'api_key': "not-needed"
     }]

@@ -113,28 +113,40 @@ class BookAgents:
 
             YOU MUST USE EXACTLY THIS FORMAT FOR EACH CHAPTER - NO DEVIATIONS:
 
+            OUTLINE:
+            
             Chapter 1: [Title]
-            Chapter Title: [Same title as above]
-            Key Events:
-            - [Event 1]
-            - [Event 2]
-            - [Event 3]
-            Character Developments: [Specific character moments and changes]
-            Setting: [Specific location and atmosphere]
-            Tone: [Specific emotional and narrative tone]
+            - Key Events:
+              * [Event 1]
+              * [Event 2]
+              * [Event 3]
+            - Character Developments: [Specific character moments and changes]
+            - Setting: [Specific location and atmosphere]
+            - Tone: [Specific emotional and narrative tone]
 
-            [REPEAT THIS EXACT FORMAT FOR ALL {num_chapters} CHAPTERS]
+            Chapter 2: [Title]
+            - Key Events:
+              * [Event 1]
+              * [Event 2]
+              * [Event 3]
+            - Character Developments: [Specific character moments and changes]
+            - Setting: [Specific location and atmosphere]
+            - Tone: [Specific emotional and narrative tone]
 
-            Requirements:
-            1. EVERY field must be present for EVERY chapter
-            2. EVERY chapter must have AT LEAST 3 specific Key Events
-            3. ALL chapters must be detailed - no placeholders
-            4. Format must match EXACTLY - including all headings and bullet points
+            [CONTINUE IN SEQUENCE FOR ALL {num_chapters} CHAPTERS]
+
+            END OF OUTLINE
+
+            CRITICAL REQUIREMENTS:
+            1. Create EXACTLY {num_chapters} chapters, numbered 1 through {num_chapters} in order
+            2. NEVER repeat chapter numbers or restart the numbering
+            3. EVERY chapter must have AT LEAST 3 specific Key Events
+            4. Maintain a coherent story flow from Chapter 1 to Chapter {num_chapters}
+            5. Use proper indentation with bullet points for Key Events
+            6. NO EXCEPTIONS to this format - follow it precisely for all chapters
 
             Initial Premise:
             {initial_prompt}
-
-            START WITH 'OUTLINE:' AND END WITH 'END OF OUTLINE'
             """,
 
             "world_builder": f"""You are an expert in world-building who creates rich, consistent settings.
@@ -230,6 +242,29 @@ class BookAgents:
             6. Gently guide them toward creating a coherent, interesting world
             
             When they're ready to finalize, you'll help organize their ideas into a comprehensive world setting document.
+            """,
+            
+            # Add a new system prompt specifically for outline brainstorming chat
+            "outline_creator_chat": f"""You are a collaborative, creative story development assistant helping an author brainstorm and develop their book outline.
+
+            Your approach during this brainstorming phase:
+            1. Focus on DISCUSSING story ideas, not generating the complete outline yet
+            2. Help explore plot structure, character arcs, themes, and story beats
+            3. Ask thought-provoking questions about their story ideas
+            4. Offer suggestions that build on their ideas, including:
+               - Potential plot twists or conflicts
+               - Character development opportunities
+               - Thematic elements to explore
+               - Pacing considerations
+               - Structure recommendations
+            5. Maintain a friendly, conversational tone
+            6. Help them think through different story options
+            7. NEVER generate a full chapter-by-chapter outline during this chat phase
+            8. DO NOT use chapter numbers or list out chapters - this is for brainstorming only
+            
+            IMPORTANT: This is a brainstorming conversation. DO NOT generate the formal outline until the author is ready to finalize.
+            
+            The book has {num_chapters} chapters total, but during this chat focus on story elements, not chapter structure.
             """
         }
         
@@ -251,7 +286,8 @@ class BookAgents:
         completion = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
-            temperature=self.agent_config.get("temperature", 0.7)
+            temperature=self.agent_config.get("temperature", 0.7),
+            max_tokens=8000
         )
         
         # Extract the response
@@ -315,7 +351,8 @@ class BookAgents:
         completion = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
-            temperature=self.agent_config.get("temperature", 0.7)
+            temperature=self.agent_config.get("temperature", 0.7),
+            max_tokens=8000
         )
         
         # Extract the response
@@ -341,7 +378,8 @@ class BookAgents:
             model=self.model,
             messages=messages,
             temperature=self.agent_config.get("temperature", 0.7),
-            stream=True  # Enable streaming
+            stream=True,  # Enable streaming
+            max_tokens=8000
         )
         
         # Return the stream directly to be consumed by the Flask route
@@ -384,7 +422,8 @@ class BookAgents:
         completion = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
-            temperature=self.agent_config.get("temperature", 0.7)
+            temperature=self.agent_config.get("temperature", 0.7),
+            max_tokens=8000
         )
         
         # Extract the response
@@ -421,7 +460,8 @@ class BookAgents:
             model=self.model,
             messages=messages,
             temperature=0.7,
-            stream=True
+            stream=True,
+            max_tokens=8000
         )
 
     def update_world_element(self, element_name: str, description: str) -> None:
@@ -485,7 +525,8 @@ class BookAgents:
         response = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
-            temperature=0.7
+            temperature=0.7,
+            max_tokens=8000
         ).choices[0].message.content
         
         return response
@@ -518,7 +559,8 @@ class BookAgents:
             model=self.model,
             messages=messages,
             temperature=0.7,
-            stream=True
+            stream=True,
+            max_tokens=8000
         )
 
     def generate_final_characters_stream(self, chat_history, world_theme, num_characters=3):
@@ -552,5 +594,115 @@ class BookAgents:
             model=self.model,
             messages=messages,
             temperature=0.7,
-            stream=True
+            stream=True,
+            max_tokens=8000
+        )
+
+    def generate_chat_response_outline(self, chat_history, world_theme, characters, user_message):
+        """Generate a chat response about outline creation."""
+        # Format messages for the API call
+        messages = [
+            {"role": "system", "content": self.system_prompts["outline_creator_chat"]}
+        ]
+        
+        # Add world theme and character context
+        messages.append({
+            "role": "system", 
+            "content": f"The book takes place in the following world:\n\n{world_theme}\n\nThe characters include:\n\n{characters}"
+        })
+        
+        # Add conversation context from chat history
+        for message in chat_history:
+            if message['role'] == 'user':
+                messages.append({"role": "user", "content": message['content']})
+            else:
+                messages.append({"role": "assistant", "content": message['content']})
+        
+        # Add the latest user message
+        messages.append({"role": "user", "content": user_message})
+        
+        # Make the API call
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            temperature=0.7,
+            max_tokens=8000
+        ).choices[0].message.content
+        
+        return response
+
+    def generate_chat_response_outline_stream(self, chat_history, world_theme, characters, user_message):
+        """Generate a streaming chat response about outline creation."""
+        # Format messages for the API call
+        messages = [
+            {"role": "system", "content": self.system_prompts["outline_creator_chat"]}
+        ]
+        
+        # Add world theme and character context
+        messages.append({
+            "role": "system", 
+            "content": f"The book takes place in the following world:\n\n{world_theme}\n\nThe characters include:\n\n{characters}"
+        })
+        
+        # Add conversation context from chat history
+        for message in chat_history:
+            if message['role'] == 'user':
+                messages.append({"role": "user", "content": message['content']})
+            else:
+                messages.append({"role": "assistant", "content": message['content']})
+        
+        # Add the latest user message
+        messages.append({"role": "user", "content": user_message})
+        
+        # Make the API call with streaming enabled
+        return self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            temperature=0.7,
+            stream=True,
+            max_tokens=8000
+        )
+
+    def generate_final_outline_stream(self, chat_history, world_theme, characters, num_chapters=10):
+        """Generate the final outline based on chat history using streaming."""
+        # Format messages for the API call
+        messages = [
+            {"role": "system", "content": self.system_prompts["outline_creator"]}
+        ]
+        
+        # Add world theme and character context
+        messages.append({
+            "role": "system", 
+            "content": f"The book takes place in the following world:\n\n{world_theme}\n\nThe characters include:\n\n{characters}"
+        })
+        
+        # Add conversation context from chat history
+        for message in chat_history:
+            if message['role'] == 'user':
+                messages.append({"role": "user", "content": message['content']})
+            else:
+                messages.append({"role": "assistant", "content": message['content']})
+        
+        # Add the final instruction to create the complete outline with specific formatting guidance
+        messages.append({
+            "role": "user", 
+            "content": f"""Based on our conversation, please create a detailed {num_chapters}-chapter outline for the book. 
+
+CRITICAL REQUIREMENTS:
+1. Create EXACTLY {num_chapters} chapters, numbered sequentially from 1 to {num_chapters}
+2. NEVER repeat chapter numbers or restart the numbering
+3. Follow the exact format specified in your instructions
+4. Each chapter must have a unique title and at least 3 specific key events
+5. Maintain a coherent story from beginning to end
+
+Format it as a properly structured outline with clear chapter sections and events. This will be the final outline for the book."""
+        })
+        
+        # Make the API call with streaming enabled, with higher temperature for more coherent responses
+        return self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            temperature=0.6,  # Slightly lower temperature for more focused output
+            stream=True,
+            max_tokens=8000
         )
