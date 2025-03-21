@@ -1,5 +1,5 @@
 """
-Flask web application for AI Book Writer
+Flask web application for OpenTale
 """
 import os
 import json
@@ -940,8 +940,9 @@ def parse_outline_to_chapters(outline_content, num_chapters):
         # Sort chapters by chapter number to ensure correct order
         chapters.sort(key=lambda x: x['chapter_number'])
         
-        # If parsing fails or produces no chapters, use a fallback
+        # Only use num_chapters as a fallback if no chapters are found
         if not chapters:
+            print(f"No chapters found in outline, creating {num_chapters} default chapters")
             for i in range(1, num_chapters + 1):
                 chapters.append({
                     'chapter_number': i,
@@ -959,23 +960,8 @@ def parse_outline_to_chapters(outline_content, num_chapters):
                 'prompt': f"Content for chapter {i}"
             })
     
-    # Ensure we have exactly num_chapters chapters
-    if len(chapters) < num_chapters:
-        # Add missing chapters
-        existing_numbers = {ch['chapter_number'] for ch in chapters}
-        for i in range(1, num_chapters + 1):
-            if i not in existing_numbers:
-                chapters.append({
-                    'chapter_number': i,
-                    'title': f"Chapter {i}",
-                    'prompt': f"Content for chapter {i}"
-                })
-    elif len(chapters) > num_chapters:
-        # Remove extra chapters
-        chapters = chapters[:num_chapters]
-    
-    # Sort once more to ensure correct order
-    chapters.sort(key=lambda x: x['chapter_number'])
+    # Print diagnostic info
+    print(f"Found {len(chapters)} chapters in the outline")
     
     # Save to the correct filename
     with open('book_output/chapters.json', 'w') as f:

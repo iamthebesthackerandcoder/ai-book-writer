@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}AI Book Writer - Book Outline{% endblock %}
+{% block title %}OpenTale - Book Outline{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -53,12 +53,8 @@
                     </div>
                 </div>
 
-                <p class="lead">Chat with the AI to develop your book's outline. Describe your ideas for the plot structure, major story beats, and character arcs.</p>
+                <p class="lead">Chat with the AI to develop your book's outline. Describe your ideas for the plot structure, major story beats, and character arcs. The number of chapters will be determined by the structure of your outline.</p>
                 
-                <div class="mb-3">
-                    <label for="numChapters" class="form-label">How many chapters would you like in your book?</label>
-                    <input type="number" class="form-control" id="numChapters" name="num_chapters" min="3" max="50" value="10">
-                </div>
                 {% endif %}
             </div>
         </div>
@@ -139,7 +135,7 @@
                 <div class="alert alert-warning mt-3">
                     <strong>No chapters have been created yet.</strong> Click the button below to generate chapters from your outline.
                     <div class="mt-2">
-                        <button id="generateChaptersBtn" class="btn btn-warning">Generate Chapters</button>
+                        <button id="generateChaptersBtn" class="btn btn-warning">Generate Chapters from Outline</button>
                     </div>
                 </div>
                 {% endif %}
@@ -229,7 +225,7 @@ $(document).ready(function() {
         const requestData = {
             message: message,
             chat_history: chatHistory.slice(0, -1), // Exclude current message
-            num_chapters: $('#numChapters').val()
+            num_chapters: 20
         };
         
         // Initialize response content
@@ -329,7 +325,7 @@ $(document).ready(function() {
             },
             body: JSON.stringify({
                 chat_history: chatHistory,
-                num_chapters: $('#numChapters').val()
+                num_chapters: 20
             })
         }).then(response => {
             // Process the streaming response
@@ -466,7 +462,7 @@ $(document).ready(function() {
             type: 'POST',
             url: '/generate_chapters',
             data: {
-                num_chapters: $('#numChapters').val() || 10
+                num_chapters: 20
             },
             success: function(response) {
                 if(response.success) {

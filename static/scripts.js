@@ -1,5 +1,5 @@
 /**
- * AI Book Writer - Common JS functions
+ * OpenTale - Common JS functions
  */
 
 // Check if document is ready
