@@ -439,24 +439,73 @@ def save_chapter(chapter_number):
 @app.route('/scene/<int:chapter_number>', methods=['GET', 'POST'])
 def scene(chapter_number):
     """Generate a scene for a specific chapter"""
+    # Load chapters data - similar logic to the chapter route
     chapters = session.get('chapters', [])
+    
+    # If no chapters in session, try to load from file
+    if not chapters and os.path.exists('book_output/outline.json'):
+        try:
+            with open('book_output/outline.json', 'r') as f:
+                chapters = json.load(f)
+                session['chapters'] = chapters
+        except Exception as e:
+            print(f"Error loading outline.json: {e}")
+    
+    # Print diagnostic info
+    print(f"Number of chapters loaded: {len(chapters)}")
+    print(f"Looking for chapter: {chapter_number}")
+    if chapters:
+        print(f"Available chapter numbers: {[ch.get('chapter_number') for ch in chapters]}")
     
     # Find chapter data
     chapter_data = None
     for ch in chapters:
-        if ch['chapter_number'] == chapter_number:
+        if ch.get('chapter_number') == chapter_number:
             chapter_data = ch
             break
     
     if not chapter_data:
-        return render_template('error.html', message=f"Chapter {chapter_number} not found")
+        print(f"Chapter {chapter_number} not found in loaded data")
+        # Try alternate approaches to find the chapter
+        
+        # Approach 1: Direct file check
+        chapter_path = f'book_output/chapters/chapter_{chapter_number}.txt'
+        if os.path.exists(chapter_path):
+            # Chapter exists but data isn't in memory
+            chapter_data = {
+                'chapter_number': chapter_number,
+                'title': f"Chapter {chapter_number}",
+                'prompt': "Chapter content from file"
+            }
+            print(f"Found chapter file, creating basic chapter data")
+        else:
+            # Approach 2: Create stub data if no chapters exist yet
+            chapter_data = {
+                'chapter_number': chapter_number,
+                'title': f"Chapter {chapter_number}",
+                'prompt': "No chapter outline available"
+            }
+            print(f"Creating stub chapter data")
     
     if request.method == 'POST':
         scene_description = request.form.get('scene_description', '')
         
         # Generate the scene
-        world_theme = session.get('world_theme', '')
-        characters = session.get('characters', '')
+        world_theme = ''
+        characters = ''
+        
+        # Load world and character data
+        if os.path.exists('book_output/world.txt'):
+            with open('book_output/world.txt', 'r') as f:
+                world_theme = f.read().strip()
+        else:
+            world_theme = session.get('world_theme', '')
+            
+        if os.path.exists('book_output/characters.txt'):
+            with open('book_output/characters.txt', 'r') as f:
+                characters = f.read().strip()
+        else:
+            characters = session.get('characters', '')
         
         # Get previous context
         previous_context = ""
@@ -469,15 +518,15 @@ def scene(chapter_number):
         
         # Initialize agents
         book_agents = BookAgents(agent_config, chapters)
-        agents = book_agents.create_agents(world_theme, len(chapters))
+        agents = book_agents.create_agents(world_theme, len(chapters) if chapters else 1)
         
         # Generate the scene
         scene_content = book_agents.generate_content(
             "writer",
             prompts.SCENE_GENERATION_PROMPT.format(
                 chapter_number=chapter_number,
-                chapter_title=chapter_data['title'],
-                chapter_outline=chapter_data['prompt'],
+                chapter_title=chapter_data.get('title', f"Chapter {chapter_number}"),
+                chapter_outline=chapter_data.get('prompt', ""),
                 world_theme=world_theme,
                 relevant_characters=characters,
                 previous_context=previous_context
