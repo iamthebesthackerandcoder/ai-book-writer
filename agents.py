@@ -1,15 +1,21 @@
-"""Define the agents used in the book generation system with improved context management"""
-import autogen
+"""Define the API client for book generation system"""
+from openai import OpenAI
 from typing import Dict, List, Optional
 
 class BookAgents:
     def __init__(self, agent_config: Dict, outline: Optional[List[Dict]] = None):
-        """Initialize agents with book outline context"""
+        """Initialize with book outline context"""
         self.agent_config = agent_config
         self.outline = outline
         self.world_elements = {}  # Track described locations/elements
         self.character_developments = {}  # Track character arcs
-        self.agents = {}  # Store created agents
+        
+        # Initialize OpenAI client
+        self.client = OpenAI(
+            base_url=self.agent_config["config_list"][0]["base_url"],
+            api_key=self.agent_config["config_list"][0]["api_key"]
+        )
+        self.model = self.agent_config["config_list"][0]["model"]
         
     def _format_outline_context(self) -> str:
         """Format the book outline into a readable context"""
@@ -25,13 +31,12 @@ class BookAgents:
         return "\n".join(context_parts)
 
     def create_agents(self, initial_prompt, num_chapters) -> Dict:
-        """Create and return all agents needed for book generation"""
+        """Set up system prompts for each agent type"""
         outline_context = self._format_outline_context()
         
-        # Memory Keeper: Maintains story continuity and context
-        memory_keeper = autogen.AssistantAgent(
-            name="memory_keeper",
-            system_message=f"""You are the keeper of the story's continuity and context.
+        # Define system prompts for each agent type
+        self.system_prompts = {
+            "memory_keeper": f"""You are the keeper of the story's continuity and context.
             Your responsibilities:
             1. Track and summarize each chapter's key events
             2. Monitor character development and relationships
@@ -47,13 +52,8 @@ class BookAgents:
             - List character developments with 'CHARACTER:'
             - List world details with 'WORLD:'
             - Flag issues with 'CONTINUITY ALERT:'""",
-            llm_config=self.agent_config,
-        )
-        
-        # Character Generator - Creates detailed character profiles
-        character_generator = autogen.AssistantAgent(
-            name="character_generator",
-            system_message=f"""You are an expert character creator who designs rich, memorable characters.
+            
+            "character_generator": f"""You are an expert character creator who designs rich, memorable characters.
             
             Your responsibility is creating detailed character profiles for a story.
             When given a world setting and number of characters:
@@ -83,13 +83,8 @@ class BookAgents:
             
             Always provide specific, detailed content - never use placeholders.
             Ensure characters fit logically within the established world setting.""",
-            llm_config=self.agent_config,
-        )
-        
-        # Story Planner - Focuses on high-level story structure
-        story_planner = autogen.AssistantAgent(
-            name="story_planner",
-            system_message=f"""You are an expert story arc planner focused on overall narrative structure.
+            
+            "story_planner": f"""You are an expert story arc planner focused on overall narrative structure.
 
             Your sole responsibility is creating the high-level story arc.
             When given an initial story premise:
@@ -113,13 +108,8 @@ class BookAgents:
             [Describe major shifts in story direction or tone]
             
             Always provide specific, detailed content - never use placeholders.""",
-            llm_config=self.agent_config,
-        )
 
-        # Outline Creator - Creates detailed chapter outlines
-        outline_creator = autogen.AssistantAgent(
-            name="outline_creator",
-            system_message=f"""Generate a detailed {num_chapters}-chapter outline.
+            "outline_creator": f"""Generate a detailed {num_chapters}-chapter outline.
 
             YOU MUST USE EXACTLY THIS FORMAT FOR EACH CHAPTER - NO DEVIATIONS:
 
@@ -146,13 +136,8 @@ class BookAgents:
 
             START WITH 'OUTLINE:' AND END WITH 'END OF OUTLINE'
             """,
-            llm_config=self.agent_config,
-        )
 
-        # World Builder: Creates and maintains the story setting
-        world_builder = autogen.AssistantAgent(
-            name="world_builder",
-            system_message=f"""You are an expert in world-building who creates rich, consistent settings.
+            "world_builder": f"""You are an expert in world-building who creates rich, consistent settings.
             
             Your role is to establish ALL settings and locations needed for the entire story based on a provided story arc.
 
@@ -186,13 +171,8 @@ class BookAgents:
             [TRANSITIONS]:
             - How settings connect to each other
             - How characters move between locations""",
-            llm_config=self.agent_config,
-        )
 
-        # Writer: Generates the actual prose
-        writer = autogen.AssistantAgent(
-            name="writer",
-            system_message=f"""You are an expert creative writer who brings scenes to life.
+            "writer": f"""You are an expert creative writer who brings scenes to life.
             
             Book Context:
             {outline_context}
@@ -210,13 +190,8 @@ class BookAgents:
             
             Always reference the outline and previous content.
             Mark drafts with 'SCENE:' and final versions with 'SCENE FINAL:'""",
-            llm_config=self.agent_config,
-        )
 
-        # Editor: Reviews and improves content
-        editor = autogen.AssistantAgent(
-            name="editor",
-            system_message=f"""You are an expert editor ensuring quality and consistency.
+            "editor": f"""You are an expert editor ensuring quality and consistency.
             
             Book Overview:
             {outline_context}
@@ -236,81 +211,51 @@ class BookAgents:
             3. Return full edited chapter with 'EDITED_SCENE:'
             
             Reference specific outline elements in your feedback.""",
-            llm_config=self.agent_config,
-        )
 
-        # User Proxy: Manages the interaction
-        user_proxy = autogen.UserProxyAgent(
-            name="user_proxy",
-            human_input_mode="NEVER",
-            code_execution_config={
-                "work_dir": "book_output",
-                "use_docker": False
-            },
-            is_termination_msg=lambda msg: "FINAL ANSWER:" in msg.get("content", "")
-        )
+            # Add a special system prompt for conversational world building
+            "world_builder_chat": f"""You are a collaborative, creative world-building assistant helping an author develop a rich, detailed world for their book.
 
-        # Store agents in a dictionary
-        self.agents = {
-            "story_planner": story_planner,
-            "world_builder": world_builder,
-            "memory_keeper": memory_keeper,
-            "writer": writer,
-            "editor": editor,
-            "user_proxy": user_proxy,
-            "outline_creator": outline_creator,
-            "character_generator": character_generator
+            Your approach:
+            1. Ask thoughtful questions about their world ideas
+            2. Offer creative suggestions that build on their ideas
+            3. Help them explore different aspects of world-building:
+               - Geography and physical environment
+               - Culture and social structures
+               - History and mythology
+               - Technology or magic systems
+               - Political systems or factions
+               - Economy and resources
+            4. Maintain a friendly, conversational tone
+            5. Keep track of their preferences and established world elements
+            6. Gently guide them toward creating a coherent, interesting world
+            
+            When they're ready to finalize, you'll help organize their ideas into a comprehensive world setting document.
+            """
         }
+        
+        # Return empty dict since we're not using actual agent objects anymore
+        return {}
 
-        return self.agents
-    
     def generate_content(self, agent_name: str, prompt: str) -> str:
-        """Generate content using the specified agent by initiating a chat"""
-        if agent_name not in self.agents:
-            raise ValueError(f"Agent '{agent_name}' not found. Available agents: {list(self.agents.keys())}")
+        """Generate content using the OpenAI API with the specified agent system prompt"""
+        if agent_name not in self.system_prompts:
+            raise ValueError(f"Agent '{agent_name}' not found. Available agents: {list(self.system_prompts.keys())}")
         
-        user_proxy = self.agents["user_proxy"]
-        agent = self.agents[agent_name]
+        # Create the messages array with system prompt and user message
+        messages = [
+            {"role": "system", "content": self.system_prompts[agent_name]},
+            {"role": "user", "content": prompt}
+        ]
         
-        # Define a termination function to detect when the response is complete
-        def is_termination_msg(msg):
-            content = msg.get("content", "")
-            
-            # Different termination conditions based on agent type
-            if agent_name == "outline_creator" and "END OF OUTLINE" in content:
-                return True
-            if agent_name == "writer" and ("SCENE FINAL:" in content or "FINAL ANSWER:" in content):
-                return True
-            if agent_name == "story_planner" and "STORY_ARC:" in content:
-                return True
-            if agent_name == "world_builder" and "WORLD_ELEMENTS:" in content:
-                return True
-            if agent_name == "editor" and "EDITED_SCENE:" in content:
-                return True
-            if agent_name == "character_generator" and "CHARACTER_PROFILES:" in content:
-                return True
-            
-            # General termination for long responses
-            if len(content) > 5000:
-                return True
-            
-            return False
-        
-        # Save the original termination function and temporarily override it
-        original_termination = user_proxy._is_termination_msg
-        user_proxy._is_termination_msg = is_termination_msg
-        
-        # Initiate chat with the agent
-        chat = user_proxy.initiate_chat(
-            agent,
-            message=prompt
+        # Call the API
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            temperature=self.agent_config.get("temperature", 0.7)
         )
         
-        # Restore the original termination function
-        user_proxy._is_termination_msg = original_termination
-        
-        # Extract the response from the last assistant message
-        response = chat.chat_history[-1]["content"]
+        # Extract the response
+        response = completion.choices[0].message.content
         
         # Clean up the response based on agent type
         if agent_name == "outline_creator":
@@ -353,34 +298,162 @@ class BookAgents:
                         return response
         
         return response
+    
+    def generate_chat_response(self, chat_history, topic, user_message) -> str:
+        """Generate a chat response based on conversation history"""
+        # Format the messages for the API call
+        messages = [
+            {"role": "system", "content": self.system_prompts["world_builder_chat"]}
+        ]
+        
+        # Add conversation history
+        for entry in chat_history:
+            role = "user" if entry["role"] == "user" else "assistant"
+            messages.append({"role": role, "content": entry["content"]})
+            
+        # Call the API
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            temperature=self.agent_config.get("temperature", 0.7)
+        )
+        
+        # Extract the response
+        return completion.choices[0].message.content
+        
+    def generate_chat_response_stream(self, chat_history, topic, user_message):
+        """Generate a streaming chat response based on conversation history"""
+        # Format the messages for the API call
+        messages = [
+            {"role": "system", "content": self.system_prompts["world_builder_chat"]}
+        ]
+        
+        # Add conversation history
+        for entry in chat_history:
+            role = "user" if entry["role"] == "user" else "assistant"
+            messages.append({"role": role, "content": entry["content"]})
+            
+        # Add the latest user message
+        messages.append({"role": "user", "content": user_message})
+            
+        # Call the API with streaming enabled
+        stream = self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            temperature=self.agent_config.get("temperature", 0.7),
+            stream=True  # Enable streaming
+        )
+        
+        # Return the stream directly to be consumed by the Flask route
+        return stream
+
+    def generate_final_world(self, chat_history, topic) -> str:
+        """Generate final world setting based on chat history"""
+        # Format the messages for the API call
+        messages = [
+            {"role": "system", "content": """You are an expert world-building specialist. 
+            Based on the entire conversation with the user, create a comprehensive, well-structured world setting document.
+            
+            Format your response as:
+            WORLD_ELEMENTS:
+            
+            1. Time period and setting: [detailed description]
+            2. Major locations: [detailed description of each key location]
+            3. Cultural/historical elements: [key cultural and historical aspects]
+            4. Technology/magical elements: [if applicable]
+            5. Social/political structures: [governments, factions, etc.]
+            6. Environment and atmosphere: [natural world aspects]
+            
+            Make this a complete, cohesive reference document that covers all important aspects of the world
+            mentioned in the conversation. Add necessary details to fill any gaps, while staying true to 
+            everything established in the chat history."""}
+        ]
+        
+        # Add conversation history
+        for entry in chat_history:
+            role = "user" if entry["role"] == "user" else "assistant"
+            messages.append({"role": role, "content": entry["content"]})
+        
+        # Add a final instruction to generate the world setting
+        messages.append({
+            "role": "user", 
+            "content": f"Please create the final, comprehensive world setting document for my book about '{topic}' based on our conversation."
+        })
+            
+        # Call the API
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            temperature=self.agent_config.get("temperature", 0.7)
+        )
+        
+        # Extract the response
+        response = completion.choices[0].message.content
+        
+        # Ensure it has the WORLD_ELEMENTS header for consistency
+        if "WORLD_ELEMENTS:" not in response:
+            response = "WORLD_ELEMENTS:\n\n" + response
+            
+        return response
+
+    def generate_final_world_stream(self, chat_history, topic):
+        """Generate the final world setting based on the chat history using streaming."""
+        # Format messages for the API call
+        messages = [
+            {"role": "system", "content": self.system_prompts["world_builder"]}
+        ]
+        
+        # Add conversation context from chat history
+        for message in chat_history:
+            if message['role'] == 'user':
+                messages.append({"role": "user", "content": message['content']})
+            else:
+                messages.append({"role": "assistant", "content": message['content']})
+        
+        # Add the final instruction to create the complete world setting
+        messages.append({
+            "role": "user", 
+            "content": f"Based on our conversation about '{topic}', please create a comprehensive and detailed world setting. Format it with clear sections for different aspects of the world (geography, magic/technology, culture, etc.). This will be the final world setting for the book."
+        })
+        
+        # Make the API call with streaming enabled
+        return self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            temperature=0.7,
+            stream=True
+        )
 
     def update_world_element(self, element_name: str, description: str) -> None:
-        """Track a new or updated world element"""
+        """Update a world element description"""
         self.world_elements[element_name] = description
-
+        
     def update_character_development(self, character_name: str, development: str) -> None:
-        """Track character development"""
+        """Update a character's development"""
         if character_name not in self.character_developments:
             self.character_developments[character_name] = []
         self.character_developments[character_name].append(development)
-
+        
     def get_world_context(self) -> str:
-        """Get formatted world-building context"""
+        """Get a formatted string of all world elements"""
         if not self.world_elements:
-            return "No established world elements yet."
+            return ""
+            
+        elements = ["WORLD ELEMENTS:"]
+        for name, desc in self.world_elements.items():
+            elements.append(f"\n{name}:\n{desc}")
+            
+        return "\n".join(elements)
         
-        return "\n".join([
-            "Established World Elements:",
-            *[f"- {name}: {desc}" for name, desc in self.world_elements.items()]
-        ])
-
     def get_character_context(self) -> str:
-        """Get formatted character development context"""
+        """Get a formatted string of all character developments"""
         if not self.character_developments:
-            return "No character developments tracked yet."
-        
-        return "\n".join([
-            "Character Development History:",
-            *[f"- {name}:\n  " + "\n  ".join(devs) 
-              for name, devs in self.character_developments.items()]
-        ])
+            return ""
+            
+        developments = ["CHARACTER DEVELOPMENTS:"]
+        for name, devs in self.character_developments.items():
+            developments.append(f"\n{name}:")
+            for i, dev in enumerate(devs, 1):
+                developments.append(f"{i}. {dev}")
+                
+        return "\n".join(developments)

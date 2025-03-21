@@ -18,6 +18,20 @@ Create a rich and detailed world setting for a book. Include:
 Be specific and detailed, creating a cohesive world that would support an engaging narrative.
 """
 
+# World suggestions prompt
+WORLD_SUGGESTIONS_PROMPT = """
+Based on the general topic: {topic}
+
+Create a brief overview of potential world elements for a book. Include:
+1. 2-3 potential time periods or settings that would work well
+2. 3-5 key elements that would make this world interesting and unique
+3. Brief suggestions for the atmosphere and tone 
+4. Any potential conflicts or tensions that could exist in this world
+
+This is a preliminary summary to help guide the creation of a more detailed world setting.
+Keep it concise but inspiring, focusing on elements that would spark the imagination.
+"""
+
 # Character creation prompt
 CHARACTER_CREATION_PROMPT = """
 Based on the world setting:

@@ -1,113 +1,183 @@
-OUTLINE:**
-
-Chapter 1: The Call of the Heart Tree
-
-- Chapter Title: The Call of the Heart Tree
-- Key Events:
-    - Eamon discovers an ancient map hidden within his mentor's belongings.
-    - He decides to embark on a journey to uncover the secrets of the Heart Tree.
-    - Eamon encounters a mysterious, glowing orb in Whisperwood Forest that leads him deeper into the woods.
-- Character Developments: Eamon's curiosity and determination are highlighted as he prepares for his quest. He reflects on his mentor's teachings and the importance of protecting Valoria.
-- Setting: The dense, mystical atmosphere of Whisperwood Forest, with its twisting paths and ancient magic.
-- Tone: Intriguing and adventurous, with a sense of wonder and anticipation.
-
-Chapter 2: The Journey to Moonhaven Village
-
-- Chapter Title: The Journey to Moonhaven Village
-- Key Events:
-    - Eamon navigates hidden paths and streams in Whisperwood Forest on his way to Moonhaven Village.
-    - He encounters various forest creatures, some friendly and others wary of his mission.
-    - Eamon arrives at Moonhaven Village, where he seeks information about the Heart Tree from the village elders.
-- Character Developments: Eamon's resourcefulness and adaptability are tested as he navigates the forest. He learns to communicate with different creatures and gain their trust.
-- Setting: The transition from Whisperwood Forest to the quaint, welcoming atmosphere of Moonhaven Village.
-- Tone: Hopeful and community-oriented, with a sense of guidance and support.
-
-Chapter 3: Ancient Lore
-
-- Chapter Title: Ancient Lore
-- Key Events:
-    - Eamon meets Lyra, a human scholar who shares his love for ancient lore.
-    - They discover an old tome in the village chapel that contains clues about the Heart Tree's magic.
-    - Eamon and Lyra decide to travel to Emerald Keep to consult with the Council of Elders.
-- Character Developments: Eamon forms a strong bond with Lyra, finding common ground in their shared interests. He begins to see the value of human-anthro collaboration.
-- Setting: Moonhaven Village's chapel and market square, filled with the scent of baking bread and the sound of children laughing.
-- Tone: Intellectual and collaborative, with a sense of discovery and camaraderie.
-
-Chapter 4: The Council of Elders
-
-- Chapter Title: The Council of Elders
-- Key Events:
-    - Eamon and Lyra journey to Emerald Keep, where they present their findings to the Council of Elders.
-    - The council reveals that dark magic is spreading from The Shadowmarche, threatening Valoria's peace.
-    - Elder Thornblossom takes Eamon under his wing, offering guidance on the path ahead.
-- Character Developments: Eamon gains a mentor in Elder Thornblossom, learning about the complexities of Valoria's magic and politics. He begins to understand the weight of his responsibilities.
-- Setting: The grand, imposing atmosphere of Emerald Keep, with its great hall adorned with tapestries and ancient tomes.
-- Tone: Serious and reflective, with a sense of duty and wisdom.
-
-Chapter 5: Shadows of the Past
-
-- Chapter Title: Shadows of the Past
-- Key Events:
-    - Eamon and Lyra delve into the keep's library, uncovering more about the Great Schism and its lingering effects.
-    - They learn that Lord Malachar Darkheart is behind the spreading darkness from The Shadowmarche.
-    - Queen Seraphina shares her visions of impending danger, urging them to act swiftly.
-- Character Developments: Eamon grapples with the historical context of his quest, understanding the deep-seated mistrust between humans and anthros. Lyra's scholarly insights help him see new perspectives.
-- Setting: The dimly lit library of Emerald Keep, filled with ancient scrolls and whispered secrets.
-- Tone: Haunting and revelatory, with a sense of foreboding and urgency.
-
-Chapter 6: Into the Dark
-
-- Chapter Title: Into the Dark
-- Key Events:
-    - Eamon, Lyra, and Elder Thornblossom descend from Emerald Keep into secret underground tunnels leading to The Crystal Caverns.
-    - They encounter glowing crystals that reveal visions of Valoria's past and future.
-    - A hidden passage leads them towards The Shadowmarche, where the darkness is strongest.
-- Character Developments: Eamon's courage and determination are tested as he faces the unknown. Lyra's knowledge of ancient magic proves invaluable in navigating the caverns.
-- Setting: The eerie, enchanting atmosphere of The Crystal Caverns, with its glowing crystals and labyrinthine passages.
-- Tone: Mysterious and tense, with a sense of anticipation and danger.
-
-Chapter 7: The Shadowmarche
-
-- Chapter Title: The Shadowmarche
-- Key Events:
-    - Eamon, Lyra, and Elder Thornblossom cross the mist-shrouded border into The Shadowmarche.
-    - They encounter twisted paths, ancient ruins, and hidden creatures that test their resolve.
-    - Lord Malachar's presence is felt strongly, his dark magic corrupting the forest.
-- Character Developments: Eamon confronts his fears about leadership and responsibility. Lyra's unwavering support helps him stay focused on his mission.
-- Setting: The foreboding, dangerous atmosphere of The Shadowmarche, with its eerie silence and pervasive mist.
-- Tone: Ominous and frightening, with a sense of impending battle and moral struggle.
-
-Chapter 8: Confrontation
-
-- Chapter Title: Confrontation
-- Key Events:
-    - Eamon faces off against Lord Malachar in a climactic battle within The Shadowmarche.
-    - Queen Seraphina arrives with reinforcements, turning the tide of the fight.
-    - Elder Thornblossom uses his wisdom to counteract Malachar's dark magic, weakening him.
-- Character Developments: Eamon learns to balance his curiosity with wisdom, understanding that not all mysteries are meant to be solved. He embraces his role as a protector of Valoria.
-- Setting: A dense, twisted glade within The Shadowmarche, where the battle rages amidst ancient ruins and twisted trees.
-- Tone: Epic and dramatic, with a sense of justice and triumph.
-
-Chapter 9: The Heart Tree's Secret
-
-- Chapter Title: The Heart Tree's Secret
-- Key Events:
-    - With Malachar defeated, Eamon returns to Whisperwood Forest to unlock the secrets of the Heart Tree.
-    - He discovers that the tree holds ancient magic capable of protecting Valoria from future threats.
-    - Queen Seraphina and Elder Thornblossom guide him in harnessing this power for the good of all Valorians.
-- Character Developments: Eamon gains a deeper understanding of his role as a leader and protector. He learns to trust in his own abilities and those of his allies.
-- Setting: The ancient, mystical atmosphere of Whisperwood Forest, with the Heart Tree at its center, glowing with magic.
-- Tone: Triumphant and hopeful, with a sense of renewal and unity.
-
-Chapter 10: A New Era
-
-- Chapter Title: A New Era
-- Key Events:
-    - Eamon returns to Moonhaven Village, where he is hailed as a hero.
-    - He reflects on his journey and the lessons he has learned about leadership, responsibility, and the importance of unity between humans and anthros.
-    - The story concludes with a celebration of peace and prosperity in Valoria, as the threat from The Shadowmarche is vanquished.
-- Character Developments: Eamon's arc comes full circle as he embraces his role as a protector and leader. He understands the value of collaboration and unity in maintaining Valoria's harmony.
-- Setting: Moonhaven Village, adorned with banners and filled with the sounds of celebration and joy.
-- Tone: Joyous and inspirational, with a sense of closure and optimism.
-
+OUTLINE:**
+
+Chapter 1: The Call of the Heart Tree
+
+- Chapter Title: The Call of the Heart Tree
+
+- Key Events:
+
+    - Eamon discovers an ancient map hidden within his mentor's belongings.
+
+    - He decides to embark on a journey to uncover the secrets of the Heart Tree.
+
+    - Eamon encounters a mysterious, glowing orb in Whisperwood Forest that leads him deeper into the woods.
+
+- Character Developments: Eamon's curiosity and determination are highlighted as he prepares for his quest. He reflects on his mentor's teachings and the importance of protecting Valoria.
+
+- Setting: The dense, mystical atmosphere of Whisperwood Forest, with its twisting paths and ancient magic.
+
+- Tone: Intriguing and adventurous, with a sense of wonder and anticipation.
+
+Chapter 2: The Journey to Moonhaven Village
+
+- Chapter Title: The Journey to Moonhaven Village
+
+- Key Events:
+
+    - Eamon navigates hidden paths and streams in Whisperwood Forest on his way to Moonhaven Village.
+
+    - He encounters various forest creatures, some friendly and others wary of his mission.
+
+    - Eamon arrives at Moonhaven Village, where he seeks information about the Heart Tree from the village elders.
+
+- Character Developments: Eamon's resourcefulness and adaptability are tested as he navigates the forest. He learns to communicate with different creatures and gain their trust.
+
+- Setting: The transition from Whisperwood Forest to the quaint, welcoming atmosphere of Moonhaven Village.
+
+- Tone: Hopeful and community-oriented, with a sense of guidance and support.
+
+Chapter 3: Ancient Lore
+
+- Chapter Title: Ancient Lore
+
+- Key Events:
+
+    - Eamon meets Lyra, a human scholar who shares his love for ancient lore.
+
+    - They discover an old tome in the village chapel that contains clues about the Heart Tree's magic.
+
+    - Eamon and Lyra decide to travel to Emerald Keep to consult with the Council of Elders.
+
+- Character Developments: Eamon forms a strong bond with Lyra, finding common ground in their shared interests. He begins to see the value of human-anthro collaboration.
+
+- Setting: Moonhaven Village's chapel and market square, filled with the scent of baking bread and the sound of children laughing.
+
+- Tone: Intellectual and collaborative, with a sense of discovery and camaraderie.
+
+Chapter 4: The Council of Elders
+
+- Chapter Title: The Council of Elders
+
+- Key Events:
+
+    - Eamon and Lyra journey to Emerald Keep, where they present their findings to the Council of Elders.
+
+    - The council reveals that dark magic is spreading from The Shadowmarche, threatening Valoria's peace.
+
+    - Elder Thornblossom takes Eamon under his wing, offering guidance on the path ahead.
+
+- Character Developments: Eamon gains a mentor in Elder Thornblossom, learning about the complexities of Valoria's magic and politics. He begins to understand the weight of his responsibilities.
+
+- Setting: The grand, imposing atmosphere of Emerald Keep, with its great hall adorned with tapestries and ancient tomes.
+
+- Tone: Serious and reflective, with a sense of duty and wisdom.
+
+Chapter 5: Shadows of the Past
+
+- Chapter Title: Shadows of the Past
+
+- Key Events:
+
+    - Eamon and Lyra delve into the keep's library, uncovering more about the Great Schism and its lingering effects.
+
+    - They learn that Lord Malachar Darkheart is behind the spreading darkness from The Shadowmarche.
+
+    - Queen Seraphina shares her visions of impending danger, urging them to act swiftly.
+
+- Character Developments: Eamon grapples with the historical context of his quest, understanding the deep-seated mistrust between humans and anthros. Lyra's scholarly insights help him see new perspectives.
+
+- Setting: The dimly lit library of Emerald Keep, filled with ancient scrolls and whispered secrets.
+
+- Tone: Haunting and revelatory, with a sense of foreboding and urgency.
+
+Chapter 6: Into the Dark
+
+- Chapter Title: Into the Dark
+
+- Key Events:
+
+    - Eamon, Lyra, and Elder Thornblossom descend from Emerald Keep into secret underground tunnels leading to The Crystal Caverns.
+
+    - They encounter glowing crystals that reveal visions of Valoria's past and future.
+
+    - A hidden passage leads them towards The Shadowmarche, where the darkness is strongest.
+
+- Character Developments: Eamon's courage and determination are tested as he faces the unknown. Lyra's knowledge of ancient magic proves invaluable in navigating the caverns.
+
+- Setting: The eerie, enchanting atmosphere of The Crystal Caverns, with its glowing crystals and labyrinthine passages.
+
+- Tone: Mysterious and tense, with a sense of anticipation and danger.
+
+Chapter 7: The Shadowmarche
+
+- Chapter Title: The Shadowmarche
+
+- Key Events:
+
+    - Eamon, Lyra, and Elder Thornblossom cross the mist-shrouded border into The Shadowmarche.
+
+    - They encounter twisted paths, ancient ruins, and hidden creatures that test their resolve.
+
+    - Lord Malachar's presence is felt strongly, his dark magic corrupting the forest.
+
+- Character Developments: Eamon confronts his fears about leadership and responsibility. Lyra's unwavering support helps him stay focused on his mission.
+
+- Setting: The foreboding, dangerous atmosphere of The Shadowmarche, with its eerie silence and pervasive mist.
+
+- Tone: Ominous and frightening, with a sense of impending battle and moral struggle.
+
+Chapter 8: Confrontation
+
+- Chapter Title: Confrontation
+
+- Key Events:
+
+    - Eamon faces off against Lord Malachar in a climactic battle within The Shadowmarche.
+
+    - Queen Seraphina arrives with reinforcements, turning the tide of the fight.
+
+    - Elder Thornblossom uses his wisdom to counteract Malachar's dark magic, weakening him.
+
+- Character Developments: Eamon learns to balance his curiosity with wisdom, understanding that not all mysteries are meant to be solved. He embraces his role as a protector of Valoria.
+
+- Setting: A dense, twisted glade within The Shadowmarche, where the battle rages amidst ancient ruins and twisted trees.
+
+- Tone: Epic and dramatic, with a sense of justice and triumph.
+
+Chapter 9: The Heart Tree's Secret
+
+- Chapter Title: The Heart Tree's Secret
+
+- Key Events:
+
+    - With Malachar defeated, Eamon returns to Whisperwood Forest to unlock the secrets of the Heart Tree.
+
+    - He discovers that the tree holds ancient magic capable of protecting Valoria from future threats.
+
+    - Queen Seraphina and Elder Thornblossom guide him in harnessing this power for the good of all Valorians.
+
+- Character Developments: Eamon gains a deeper understanding of his role as a leader and protector. He learns to trust in his own abilities and those of his allies.
+
+- Setting: The ancient, mystical atmosphere of Whisperwood Forest, with the Heart Tree at its center, glowing with magic.
+
+- Tone: Triumphant and hopeful, with a sense of renewal and unity.
+
+Chapter 10: A New Era
+
+- Chapter Title: A New Era
+
+- Key Events:
+
+    - Eamon returns to Moonhaven Village, where he is hailed as a hero.
+
+    - He reflects on his journey and the lessons he has learned about leadership, responsibility, and the importance of unity between humans and anthros.
+
+    - The story concludes with a celebration of peace and prosperity in Valoria, as the threat from The Shadowmarche is vanquished.
+
+- Character Developments: Eamon's arc comes full circle as he embraces his role as a protector and leader. He understands the value of collaboration and unity in maintaining Valoria's harmony.
+
+- Setting: Moonhaven Village, adorned with banners and filled with the sounds of celebration and joy.
+
+- Tone: Joyous and inspirational, with a sense of closure and optimism.
+
 **END OF OUTLINE

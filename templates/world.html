@@ -11,30 +11,51 @@
                 <a href="/characters" class="btn btn-light btn-sm">Next: Characters &raquo;</a>
             </div>
             <div class="card-body">
-                <form id="worldForm" action="/world" method="post">
-                    <div class="mb-3">
-                        <label for="topic" class="form-label">Enter a general topic or theme for your book:</label>
-                        <input type="text" class="form-control" id="topic" name="topic" required 
-                               value="{{ topic }}" placeholder="e.g., fantasy adventure in a medieval setting">
+                <p class="lead">Start by chatting with the AI to develop your book's world. Describe your ideas, answer questions, and explore different aspects of your world together.</p>
+                <input type="hidden" id="topic" name="topic" value="{{ topic }}">
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chat interface -->
+    <div class="col-12 mb-4" id="chatContainer">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="h5 mb-0">World Building Chat</h3>
+            </div>
+            <div class="card-body">
+                <div id="chatMessages" class="p-3 mb-3 border rounded" style="height: 400px; overflow-y: auto;">
+                    <!-- Chat messages will appear here -->
+                    {% if not world_theme %}
+                    <div class="text-center p-3">
+                        <p>Tell me about the world you want to create for your book. What kind of setting, time period, or genre are you interested in?</p>
                     </div>
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary" id="generateWorldBtn">Generate World Setting</button>
-                    </div>
-                </form>
+                    {% endif %}
+                </div>
                 
-                <div id="generatingIndicator" class="alert alert-info mt-3 d-none">
+                <div class="d-flex">
+                    <input type="text" id="userMessage" class="form-control me-2" placeholder="Type your ideas about the world you want to create...">
+                    <button id="sendMessageBtn" class="btn btn-primary">Send</button>
+                </div>
+                
+                <div class="mt-3">
+                    <button id="finalizeChatBtn" class="btn btn-success">Finalize World Setting</button>
+                </div>
+                
+                <div id="chatTypingIndicator" class="alert alert-info mt-3 d-none">
                     <div class="d-flex align-items-center">
                         <div class="spinner-border spinner-border-sm me-2" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
-                        <div>Generating world setting... This may take a minute.</div>
+                        <div>AI is thinking...</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <div class="col-12" id="worldResultContainer" {% if not world_theme %}style="display: none;"{% endif %}>
+    <!-- Final world setting container -->
+    <div class="col-12" id="worldResultContainer" {% if not world_theme %}style="display: none;"{% endif %} data-has-world="{{ world_theme|length > 0 }}">
         <div class="card">
             <div class="card-header bg-success text-white">
                 <h3 class="h5 mb-0">Your World Setting</h3>
@@ -70,29 +91,258 @@
 
 <script>
 $(document).ready(function() {
-    // Generate world theme
-    $('#worldForm').submit(function(e) {
-        e.preventDefault();
-        $('#generatingIndicator').removeClass('d-none');
-        $('#generateWorldBtn').prop('disabled', true);
+    // Chat history
+    let chatHistory = [];
+    
+    // World theme display is already handled with the style attribute in the HTML
+    
+    // Send user message
+    $('#sendMessageBtn').click(function() {
+        sendUserMessage();
+    });
+    
+    // Also send message when user presses Enter
+    $('#userMessage').keypress(function(e) {
+        if (e.which === 13) {
+            sendUserMessage();
+            e.preventDefault();
+        }
+    });
+    
+    function sendUserMessage() {
+        const message = $('#userMessage').val().trim();
+        if (!message) return;
         
-        $.ajax({
-            type: 'POST',
-            url: '/world',
-            data: $(this).serialize(),
-            success: function(response) {
-                $('#worldTheme').val(response.world_theme);
-                $('#worldResultContainer').show();
-                $('#generatingIndicator').addClass('d-none');
-                $('#generateWorldBtn').prop('disabled', false);
+        // Add user message to chat
+        addMessageToChat('user', message);
+        
+        // Clear input field
+        $('#userMessage').val('');
+        
+        // Show AI is thinking
+        $('#chatTypingIndicator').removeClass('d-none');
+        
+        // Update chat history
+        chatHistory.push({role: 'user', content: message});
+        
+        // Create a message div for the AI response
+        const messageDiv = $('<div>').addClass('mb-3 text-start');
+        const messageBubble = $('<div>')
+            .addClass('d-inline-block bg-light p-2 rounded-3')
+            .css('max-width', '80%')
+            .html('<span class="typing-cursor">▌</span>');
+        messageDiv.append(messageBubble);
+        $('#chatMessages').append(messageDiv);
+        
+        // Scroll to bottom
+        $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
+        
+        // Extract topic if this is the first message
+        if(chatHistory.length === 1) {
+            // Try to extract a topic from the first message
+            const topicText = message.split(' ').slice(0, 5).join(' ');
+            $('#topic').val(topicText);
+        }
+        
+        // Prepare request data
+        const requestData = {
+            message: message,
+            chat_history: chatHistory.slice(0, -1), // Exclude current message
+            topic: $('#topic').val()
+        };
+        
+        // Initialize response content
+        let responseContent = '';
+        
+        // Make the streaming request with fetch
+        fetch('/world_chat_stream', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
             },
-            error: function() {
-                alert('Error generating world theme. Please try again.');
-                $('#generatingIndicator').addClass('d-none');
-                $('#generateWorldBtn').prop('disabled', false);
+            body: JSON.stringify(requestData)
+        }).then(response => {
+            // Use a ReadableStream to process the streaming response
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            
+            function readStream() {
+                return reader.read().then(({ value, done }) => {
+                    if (done) {
+                        // End of stream
+                        $('#chatTypingIndicator').addClass('d-none');
+                        // Update chat history with complete response
+                        chatHistory.push({role: 'ai', content: responseContent});
+                        // Remove typing cursor
+                        messageBubble.find('.typing-cursor').remove();
+                        return;
+                    }
+                    
+                    // Decode the chunk
+                    const chunk = decoder.decode(value);
+                    
+                    // Process each event in the chunk
+                    chunk.split('\n\n').forEach(event => {
+                        if (event.startsWith('data: ')) {
+                            try {
+                                const jsonData = event.substring(6); // Remove 'data: ' prefix
+                                const data = JSON.parse(jsonData);
+                                
+                                if (data.content === '[DONE]') {
+                                    // This will be handled by the done flag
+                                    return;
+                                }
+                                
+                                // Append new content to response
+                                responseContent += data.content;
+                                
+                                // Update the message bubble with formatted content
+                                messageBubble.html(formatMessage(responseContent) + '<span class="typing-cursor">▌</span>');
+                                
+                                // Scroll to bottom as content arrives
+                                $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
+                            } catch (e) {
+                                console.error('Error parsing JSON:', e, jsonData);
+                            }
+                        }
+                    });
+                    
+                    // Continue reading
+                    return readStream();
+                });
             }
+            
+            // Start reading the stream
+            return readStream();
+        }).catch(error => {
+            console.error('Fetch error:', error);
+            $('#chatTypingIndicator').addClass('d-none');
+            addMessageToChat('system', 'Error streaming response. Please try again.');
+        });
+    }
+    
+    // Finalize world setting
+    $('#finalizeChatBtn').click(function() {
+        // Show AI is thinking
+        $('#chatTypingIndicator').removeClass('d-none');
+        
+        // Disable button
+        $(this).prop('disabled', true);
+        
+        // Prepare the textarea in the result container
+        $('#worldTheme').val('');
+        
+        // Show result container
+        $('#worldResultContainer').show();
+        
+        // Create a typing cursor for streaming effect
+        let worldText = '';
+        const worldTextarea = $('#worldTheme');
+        worldTextarea.val('');
+        
+        // Make a streaming request for the final world setting
+        fetch('/finalize_world_stream', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                chat_history: chatHistory,
+                topic: $('#topic').val()
+            })
+        }).then(response => {
+            // Process the streaming response
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            
+            function readStream() {
+                return reader.read().then(({ value, done }) => {
+                    if (done) {
+                        // End of stream
+                        $('#chatTypingIndicator').addClass('d-none');
+                        $('#finalizeChatBtn').prop('disabled', false);
+                        $('#chatContainer').hide();
+                        return;
+                    }
+                    
+                    // Decode the chunk
+                    const chunk = decoder.decode(value);
+                    
+                    // Process each event in the chunk
+                    chunk.split('\n\n').forEach(event => {
+                        if (event.startsWith('data: ')) {
+                            try {
+                                const jsonData = event.substring(6); // Remove 'data: ' prefix
+                                const data = JSON.parse(jsonData);
+                                
+                                if (data.content === '[DONE]') {
+                                    // Streaming complete
+                                    return;
+                                }
+                                
+                                // Append new content
+                                worldText += data.content;
+                                
+                                // Update the textarea with all content so far
+                                worldTextarea.val(worldText);
+                                
+                                // Scroll textarea to bottom to follow updates
+                                worldTextarea.scrollTop(worldTextarea[0].scrollHeight);
+                            } catch (e) {
+                                console.error('Error parsing JSON:', e, jsonData);
+                            }
+                        }
+                    });
+                    
+                    // Continue reading
+                    return readStream();
+                });
+            }
+            
+            // Start reading the stream
+            return readStream();
+        }).catch(error => {
+            console.error('Fetch error for final world:', error);
+            $('#chatTypingIndicator').addClass('d-none');
+            $('#finalizeChatBtn').prop('disabled', false);
+            alert('Error finalizing world setting. Please try again.');
         });
     });
+    
+    // Add message to chat display
+    function addMessageToChat(sender, message) {
+        const messageDiv = $('<div>').addClass('mb-3');
+        
+        if (sender === 'user') {
+            messageDiv.addClass('text-end');
+            const messageBubble = $('<div>').addClass('d-inline-block bg-primary text-white p-2 rounded-3')
+                                            .css('max-width', '80%')
+                                            .html(formatMessage(message));
+            messageDiv.append(messageBubble);
+        } else if (sender === 'ai') {
+            messageDiv.addClass('text-start');
+            const messageBubble = $('<div>').addClass('d-inline-block bg-light p-2 rounded-3')
+                                            .css('max-width', '80%')
+                                            .html(formatMessage(message));
+            messageDiv.append(messageBubble);
+        } else {
+            // System message
+            messageDiv.addClass('text-center');
+            const messageBubble = $('<div>').addClass('d-inline-block bg-warning p-2 rounded-3')
+                                            .text(message);
+            messageDiv.append(messageBubble);
+        }
+        
+        $('#chatMessages').append(messageDiv);
+        
+        // Scroll to bottom
+        $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
+    }
+    
+    // Format message with line breaks
+    function formatMessage(message) {
+        return message.replace(/\n/g, '<br>');
+    }
     
     // Save world theme
     $('#saveWorldForm').submit(function(e) {

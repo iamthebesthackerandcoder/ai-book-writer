@@ -1,65 +1,74 @@
-WORLD_ELEMENTS:**
-
-**Time Period and Setting:**
-The story takes place in the medieval era, specifically in the late 14th century, within the fantastical realm of **Valoria**. Valoria is a land of rolling hills, dense forests, and ancient magic, where humans coexist with anthropomorphic animals who possess unique abilities.
-
-**Major Locations:**
-
-**[Whisperwood Forest]:**
-- Physical Description: A vast, ancient forest covering much of northern Valoria. The trees are towering and gnarled, with moss-covered trunks and canopies that filter the sunlight, casting dappled shadows on the forest floor.
-- Atmosphere: Mysterious and enchanting, with a sense of timelessness. The air is cool and damp, filled with the scent of earth and pine.
-- Key Features: Twisting paths, crystal-clear streams, and hidden glades. The Heart Tree, an enormous oak at the forest's center, is said to hold ancient magic.
-- Sensory Details: The rustling of leaves, the chirping of birds, and the occasional hoot of an owl. The smell of damp earth and the taste of cool, fresh air.
-
-**[Emerald Keep]:**
-- Physical Description: A grand fortress built into the side of a cliff overlooking the **Azure Sea**. The keep is constructed from gleaming white stone, with tall towers and battlements that sparkle in the sunlight.
-- Atmosphere: Majestic and imposing, with a sense of history and power. The air is salty and crisp, filled with the cries of seagulls.
-- Key Features: A massive wooden door, a great hall adorned with tapestries, and a library filled with ancient tomes.
-- Sensory Details: The crashing of waves against the cliffs, the scent of saltwater, and the taste of fresh sea breeze.
-
-**[Moonhaven Village]:**
-- Physical Description: A quaint village nestled in a valley surrounded by rolling hills. The buildings are constructed from stone and thatch, with smoke curling from chimneys.
-- Atmosphere: Warm and welcoming, with a sense of community and simplicity. The air is filled with the scent of woodsmoke and baking bread.
-- Key Features: A central market square, a well, and a small chapel dedicated to the goddess **Luna**.
-- Sensory Details: The sound of children laughing, the clucking of chickens, and the smell of freshly baked bread.
-
-**[The Crystal Caverns]:**
-- Physical Description: An underground network of caves filled with glowing crystals that cast an ethereal light. The caverns are vast and labyrinthine, with stalactites and stalagmites that glitter like jewels.
-- Atmosphere: Eerie and enchanting, with a sense of hidden magic. The air is cool and damp, filled with the hum of ancient energy.
-- Key Features: A lake of shimmering water, chambers filled with crystals of various colors, and hidden passages.
-- Sensory Details: The sound of dripping water, the faint glow of crystals, and the scent of earth and minerals.
-
-**[The Shadowmarche]:**
-- Physical Description: A dark, foreboding forest on the border of Valoria. The trees are twisted and bare, with a thick canopy that blots out the sunlight. The ground is covered in a perpetual mist.
-- Atmosphere: Ominous and frightening, with a sense of danger and mystery. The air is cold and damp, filled with an eerie silence.
-- Key Features: Ancient ruins, twisted paths, and hidden creatures.
-- Sensory Details: The sound of distant howls, the rustling of unseen creatures, and the scent of decay.
-
-**Prominent Cultural/Historical Elements:**
-Valoria has a rich history of magic and mythology. The **Great Schism**, a war between humans and anthropomorphic animals, occurred centuries ago but left deep scars. The **Council of Elders**, composed of wise sages from both groups, maintains peace and oversees the realm. The goddess Luna is revered for her wisdom and guidance.
-
-**Technology Level or Magical Elements:**
-Valoria's technology level is medieval, with advancements in metallurgy, agriculture, and architecture. Magic is woven into the fabric of society, used for healing, protection, and communication. Anthropos animals possess unique magical abilities tied to their animal forms (e.g., a racoon might have enhanced night vision or agility).
-
-**Social/Political Structures:**
-Valoria is governed by a monarchy, with a human king and an anthropos queen ruling jointly. The Council of Elders advises them on matters of magic and diplomacy. Society is structured around guilds and clans, with humans and anthros living side by side but maintaining distinct cultural identities.
-
-**Environment and Atmosphere:**
-Valoria's environment ranges from lush forests and rolling hills to towering cliffs and underground caverns. The atmosphere shifts from the warmth and comfort of Moonhaven Village to the mystery and danger of Whisperwood Forest and the Shadowmarche. Magic permeates every aspect of life, creating a sense of wonder and possibility.
-
-**[RECURRING ELEMENTS]:**
-- **Whisperwood Forest**: Appears multiple times as the racoon protagonist's home and a source of ancient magic.
-- **Emerald Keep**: Serves as a central location for political intrigue and royal decrees.
-- **Moonhaven Village**: Acts as a haven for the protagonist and a symbol of unity between humans and anthros.
-
-**Changes Over Time:**
-- Whisperwood Forest may become more vibrant or dangerous depending on magical events.
-- Emerald Keep could be besieged or renovated, reflecting political changes.
-- Moonhaven Village might grow or face threats, mirroring societal shifts.
-
-**[TRANSITIONS]:**
-- **Whisperwood Forest to Moonhaven Village**: The protagonist travels via hidden paths and streams, using their knowledge of the forest to navigate safely.
-- **Emerald Keep to The Crystal Caverns**: Characters descend from the keep's cliffs into secret underground tunnels leading to the caverns.
-- **The Shadowmarche to any other location**: Travel involves crossing a dangerous, mist-shrouded border, often requiring magical protection or guidance.
-
-This cohesive world of Valoria provides a rich backdrop for a racoon hero's adventures, filled with magic, mystery, and medieval charm.
+### WORLD_SETTINGS
+**WORLD_NAME:**
+Noxus - A dystopian future where an all-powerful corporation controls the minds of its citizens during sleep.
+---
+**GEOGRAPHY:**
+1. **Neo-Elysium (The Corporate Capital):**
+   - Physical Description: A sprawling metropolis with towering skyscrapers made of sleek, black glass and neon lights. The city is divided into sectors based on social status, with the elite living in luxurious high-rises and the working class residing in densely packed apartment blocks.
+   - Atmosphere: Constantly bustling with activity, especially during the day. At night, the atmosphere shifts to one of eerie silence as most citizens are connected to the corporation's network.
+   - Key Features: The Omni-Tower, the headquarters of NeuroNet Corp; the Neo-Elysium Plaza, a massive public square with holographic billboards; the Subterra, underground tunnels used by rebels and smugglers.
+   - Sensory Details: The scent of ozone from constant electrical activity, the hum of drones patrolling the skies, the ever-present glow of screens and advertisements.
+2. **The Outer Fringe:**
+   - Physical Description: A sprawling, lawless region surrounding Neo-Elysium. It consists of makeshift settlements, abandoned industrial complexes, and vast, desolate wastelands.
+   - Atmosphere: Chaotic and dangerous, with a sense of desperation and survival.
+   - Key Features: The Scrapyard, where discarded technology is salvaged; the Shadow Markets, black market trading posts; the Reclamation Zones, areas being slowly reclaimed by nature.
+   - Sensory Details: The smell of burning trash, the distant sound of gunfire, the sight of scavengers roaming the wastelands.
+3. **The Sanctuary:**
+   - Physical Description: A hidden rebel base deep within a cavern system in the Outer Fringe. It features advanced security measures and sustainable living facilities.
+   - Atmosphere: Secretive and tense, with a strong sense of community and purpose.
+   - Key Features: The Command Center, where operations are planned; the Medical Bay, equipped with advanced medical technology; the Training Grounds, for preparing recruits.
+   - Sensory Details: The sound of whispered conversations, the hum of generators, the smell of damp earth.
+---
+**TECHNOLOGY:**
+1. **NeuroNet Interface:**
+   - Physical Description: A small, sleek device worn on the temple, which connects to the brain during sleep.
+   - Key Features: Wireless communication with NeuroNet Corp's mainframe; data transmission capabilities; monitoring of neural activity.
+   - Sensory Details: A slight tingling sensation when activated, a soft blue glow indicating connection status.
+2. **Drones:**
+   - Physical Description: Small, flying machines equipped with cameras and sensors.
+   - Key Features: Surveillance, delivery services, crowd control.
+   - Sensory Details: The whirring sound of rotors, the faint buzzing noise as they fly overhead.
+3. **Holo-Screens:**
+   - Physical Description: Large, transparent screens displaying advertisements, news, and entertainment.
+   - Key Features: Interactive capabilities, customizable content based on viewer preferences.
+   - Sensory Details: The glow of bright lights, the sound of changing images and videos.
+---
+**CULTURE:**
+1. **Social Hierarchy:**
+   - Structure: Divided into Elite (corporate executives and high-ranking officials), Middle Class (skilled workers and technicians), and Lower Class (manual laborers and service workers).
+   - Key Features: Access to resources, privileges, and opportunities vary greatly between classes.
+   - Sensory Details: The stark contrast in living conditions, the visible wealth disparity.
+2. **Education:**
+   - System: Controlled by NeuroNet Corp, with a focus on technical skills and loyalty to the corporation.
+   - Key Features: Mandatory schooling until age 16; indoctrination through propaganda and corporate-sponsored curriculum.
+   - Sensory Details: The sterile environment of classrooms, the monotonous drone of teachers' voices.
+3. **Entertainment:**
+   - Forms: Holo-TV shows, virtual reality experiences, public spectacles organized by NeuroNet Corp.
+   - Key Features: Highly controlled content, designed to keep citizens entertained and distracted from the corporation's true activities.
+   - Sensory Details: The immersive nature of virtual reality, the thrill of live events.
+---
+**POLITICS:**
+1. **NeuroNet Corp:**
+   - Leadership: CEO Victor Kane, a ruthless and ambitious businessman.
+   - Goals: To maintain control over society through the NeuroNet Interface, exploiting citizens' minds for computing power and data mining.
+   - Key Features: Monopolistic control over technology and information; extensive surveillance network.
+2. **The Resistance:**
+   - Leadership: A council of anonymous figures, including "The Architect," a brilliant hacker.
+   - Goals: To expose NeuroNet Corp's crimes and liberate citizens from the NeuroNet Interface.
+   - Key Features: Guerrilla tactics, underground communication networks, alliances with sympathetic factions.
+---
+**RECURRING ELEMENTS:**
+1. **Neo-Elysium:**
+   - Changes Over Time: As the story progresses, signs of rebellion and unrest become more visible, leading to increased corporate repression.
+   - Sensory Details: The smell of tear gas during protests, the sound of breaking glass as riots erupt.
+2. **The Sanctuary:**
+   - Changes Over Time: Becomes a hub for planning and executing major operations against NeuroNet Corp, increasing its strategic importance.
+   - Sensory Details: The tension in the air as plans are discussed, the sense of urgency among rebels.
+---
+**TRANSITIONS:**
+1. **Movement Between Locations:**
+   - Travel within Neo-Elysium is facilitated by high-speed maglev trains and underground tunnels for those avoiding surveillance.
+   - Movement to the Outer Fringe requires navigating hazardous wastelands and evading corporate patrols.
+2. **Connections:**
+   - The Sanctuary serves as a safe haven and operational base for the Resistance, connected to other rebel cells through encrypted communication networks.
+   - The Scrapyard in the Outer Fringe provides essential resources and cover for rebels, with smugglers moving supplies between locations.

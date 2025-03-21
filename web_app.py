@@ -3,12 +3,11 @@ Flask web application for AI Book Writer
 """
 import os
 import json
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, Response, stream_with_context
 from config import get_config
 from agents import BookAgents
-from book_generator import BookGenerator
-from outline_generator import OutlineGenerator
 import prompts
+import re
 
 app = Flask(__name__)
 app.secret_key = 'ai-book-writer-secret-key'  # For session management
@@ -24,32 +23,9 @@ def index():
     """Render the home page"""
     return render_template('index.html')
 
-@app.route('/world', methods=['GET', 'POST'])
+@app.route('/world', methods=['GET'])
 def world():
-    """Generate or display world theme"""
-    if request.method == 'POST':
-        topic = request.form.get('topic')
-        # Save topic to session
-        session['topic'] = topic
-        
-        # Initialize agents for world building
-        book_agents = BookAgents(agent_config)
-        agents = book_agents.create_agents(topic, 0)  # 0 chapters as we're just building the world
-        
-        # Generate world theme using the prompt
-        world_theme = book_agents.generate_content(
-            "world_builder",
-            prompts.WORLD_THEME_PROMPT.format(topic=topic)
-        )
-        
-        # Clean and save world theme to session and file
-        world_theme = world_theme.strip()
-        session['world_theme'] = world_theme
-        with open('book_output/world.txt', 'w') as f:
-            f.write(world_theme)
-        
-        return jsonify({'world_theme': world_theme})
-    
+    """Display world theme or chat interface"""
     # GET request - show world page with existing theme if available
     world_theme = ''
     if os.path.exists('book_output/world.txt'):
@@ -59,13 +35,158 @@ def world():
     
     return render_template('world.html', world_theme=world_theme, topic=session.get('topic', ''))
 
+@app.route('/world_chat', methods=['POST'])
+def world_chat():
+    """Handle ongoing chat for world building"""
+    data = request.json
+    user_message = data.get('message', '')
+    chat_history = data.get('chat_history', [])
+    topic = data.get('topic', '')
+    
+    # Save topic to session if available
+    if topic:
+        session['topic'] = topic
+    
+    # Initialize agents for world building
+    book_agents = BookAgents(agent_config)
+    agents = book_agents.create_agents(topic, 0)
+    
+    # Generate response using the direct chat method
+    ai_response = book_agents.generate_chat_response(chat_history, topic, user_message)
+    
+    # Clean the response
+    ai_response = ai_response.strip()
+    
+    return jsonify({
+        'message': ai_response
+    })
+
+@app.route('/world_chat_stream', methods=['POST'])
+def world_chat_stream():
+    """Handle ongoing chat for world building with streaming response"""
+    data = request.json
+    user_message = data.get('message', '')
+    chat_history = data.get('chat_history', [])
+    topic = data.get('topic', '')
+    
+    # Save topic to session if available
+    if topic:
+        session['topic'] = topic
+    
+    # Initialize agents for world building
+    book_agents = BookAgents(agent_config)
+    agents = book_agents.create_agents(topic, 0)
+    
+    # Generate streaming response
+    stream = book_agents.generate_chat_response_stream(chat_history, topic, user_message)
+    
+    def generate():
+        # Send a heartbeat to establish the connection
+        yield "data: {\"content\": \"\"}\n\n"
+        
+        # Iterate through the stream to get each chunk
+        for chunk in stream:
+            if chunk.choices and len(chunk.choices) > 0 and chunk.choices[0].delta and chunk.choices[0].delta.content is not None:
+                content = chunk.choices[0].delta.content
+                # Send each token as it arrives
+                yield f"data: {json.dumps({'content': content})}\n\n"
+        
+        # Send completion marker
+        yield f"data: {json.dumps({'content': '[DONE]'})}\n\n"
+    
+    return Response(stream_with_context(generate()), 
+                   mimetype='text/event-stream',
+                   headers={
+                       'Cache-Control': 'no-cache',
+                       'X-Accel-Buffering': 'no'  # Disable buffering in Nginx if used
+                   })
+
+@app.route('/finalize_world', methods=['POST'])
+def finalize_world():
+    """Finalize the world setting based on chat history"""
+    data = request.json
+    chat_history = data.get('chat_history', [])
+    topic = data.get('topic', '')
+    
+    # Initialize agents for world building
+    book_agents = BookAgents(agent_config)
+    agents = book_agents.create_agents(topic, 0)
+    
+    # Generate the final world setting using the direct method
+    world_theme = book_agents.generate_final_world(chat_history, topic)
+    
+    # Clean and save world theme to session and file
+    world_theme = world_theme.strip()
+    world_theme = re.sub(r'\n+', '\n', world_theme.strip())
+    
+    session['world_theme'] = world_theme
+    with open('book_output/world.txt', 'w') as f:
+        f.write(world_theme)
+    
+    return jsonify({
+        'world_theme': world_theme
+    })
+
+@app.route('/finalize_world_stream', methods=['POST'])
+def finalize_world_stream():
+    """Finalize the world setting based on chat history with streaming response"""
+    data = request.json
+    chat_history = data.get('chat_history', [])
+    topic = data.get('topic', '')
+    
+    # Initialize agents for world building
+    book_agents = BookAgents(agent_config)
+    agents = book_agents.create_agents(topic, 0)
+    
+    # Generate the final world setting using streaming
+    stream = book_agents.generate_final_world_stream(chat_history, topic)
+    
+    def generate():
+        # Send a heartbeat to establish the connection
+        yield "data: {\"content\": \"\"}\n\n"
+        
+        # Collect all chunks to save the complete response
+        collected_content = []
+        
+        # Iterate through the stream to get each chunk
+        for chunk in stream:
+            if chunk.choices and len(chunk.choices) > 0 and chunk.choices[0].delta and chunk.choices[0].delta.content is not None:
+                content = chunk.choices[0].delta.content
+                collected_content.append(content)
+                # Send each token as it arrives
+                yield f"data: {json.dumps({'content': content})}\n\n"
+        
+        # Combine all chunks for the complete content
+        complete_content = ''.join(collected_content)
+        
+        # Clean and save world theme to session and file once streaming is complete
+        world_theme = complete_content.strip()
+        world_theme = re.sub(r'\n+', '\n', world_theme)
+        
+        session['world_theme'] = world_theme
+        with open('book_output/world.txt', 'w') as f:
+            f.write(world_theme)
+        
+        # Send completion marker
+        yield f"data: {json.dumps({'content': '[DONE]'})}\n\n"
+    
+    return Response(stream_with_context(generate()), 
+                   mimetype='text/event-stream',
+                   headers={
+                       'Cache-Control': 'no-cache',
+                       'X-Accel-Buffering': 'no'
+                   })
+
 @app.route('/save_world', methods=['POST'])
 def save_world():
     """Save edited world theme"""
     world_theme = request.form.get('world_theme')
+    world_theme = world_theme.replace('\r\n', '\n')
+    world_theme = re.sub(r'\n{2,}', '\n\n', world_theme)
     
     # Strip extra newlines at the beginning and normalize newlines
     world_theme = world_theme.strip()
+    world_theme = re.sub(r'\n+', '\n', world_theme.strip())
     
     # Save to session
     session['world_theme'] = world_theme
@@ -131,6 +252,8 @@ def characters():
 def save_characters():
     """Save edited characters"""
     characters_content = request.form.get('characters')
+    characters_content = characters_content.replace('\r\n', '\n')
+    characters_content = re.sub(r'\n{2,}', '\n\n', characters_content)
     
     # Strip extra newlines at the beginning and normalize newlines
     characters_content = characters_content.strip()
@@ -331,6 +454,8 @@ def outline():
 def save_outline():
     """Save edited outline"""
     outline_content = request.form.get('outline')
+    outline_content = outline_content.replace('\r\n', '\n')
+    outline_content = re.sub(r'\n{2,}', '\n\n', outline_content)
     
     # Strip extra newlines at the beginning and normalize newlines
     outline_content = outline_content.strip()
