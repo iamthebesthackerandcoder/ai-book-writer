@@ -16,6 +16,15 @@
                 </div>
             </div>
             <div class="card-body">
+                <!-- Debug info - you can remove this later -->
+                <div class="alert alert-info">
+                    <strong>Debug info:</strong><br>
+                    World theme available: {{ 'Yes' if world_theme else 'No' }}<br>
+                    Characters available: {{ 'Yes' if characters else 'No' }}<br>
+                    {% if world_theme %}World theme length: {{ world_theme|length }} characters{% endif %}<br>
+                    {% if characters %}Characters length: {{ characters|length }} characters{% endif %}
+                </div>
+            
                 {% if not world_theme or not characters %}
                 <div class="alert alert-warning">
                     <strong>Warning:</strong> You need to create a world setting and characters first.

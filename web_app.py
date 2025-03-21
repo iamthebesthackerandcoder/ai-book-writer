@@ -147,11 +147,71 @@ def save_characters():
 @app.route('/outline', methods=['GET', 'POST'])
 def outline():
     """Generate or display book outline"""
+    # Ensure we have the latest world data and characters from files if they exist
+    world_theme = ''
+    characters = ''
+    
+    # Try to load data from files first
+    if os.path.exists('book_output/world.txt'):
+        with open('book_output/world.txt', 'r') as f:
+            file_content = f.read().strip()
+            if file_content:  # Make sure we don't assign empty content
+                world_theme = file_content
+                session['world_theme'] = world_theme
+    
+    # If not loaded from file, try from session
+    if not world_theme:
+        session_content = session.get('world_theme', '')
+        if session_content:
+            world_theme = session_content
+    
+    # Try to load characters from file
+    if os.path.exists('book_output/characters.txt'):
+        with open('book_output/characters.txt', 'r') as f:
+            file_content = f.read().strip()
+            if file_content:  # Make sure we don't assign empty content
+                characters = file_content
+                session['characters'] = characters
+    
+    # If not loaded from file, try from session
+    if not characters:
+        session_content = session.get('characters', '')
+        if session_content:
+            characters = session_content
+    
+    # Ensure data is properly cleaned
+    world_theme = world_theme.strip() if world_theme else ''
+    characters = characters.strip() if characters else ''
+    
+    # Print diagnostics to help debug
+    print(f"World theme loaded: {bool(world_theme)}, Characters loaded: {bool(characters)}")
+    print(f"World theme length: {len(world_theme)}, Characters length: {len(characters)}")
+    
+    # Force a valid value even if there are issues
+    if not characters and os.path.exists('book_output/characters.txt'):
+        try:
+            with open('book_output/characters.txt', 'rb') as f:
+                characters = f.read().decode('utf-8', errors='ignore').strip()
+                if not characters and len(characters) < 10:
+                    # Add a fallback value
+                    characters = "CHARACTER_PROFILES:\n\nDefault character - please regenerate characters."
+        except Exception as e:
+            print(f"Error reading characters file: {e}")
+    
+    if not world_theme and os.path.exists('book_output/world.txt'):
+        try:
+            with open('book_output/world.txt', 'rb') as f:
+                world_theme = f.read().decode('utf-8', errors='ignore').strip()
+                if not world_theme and len(world_theme) < 10:
+                    # Add a fallback value
+                    world_theme = "WORLD_ELEMENTS:\n\nDefault world - please regenerate world setting."
+        except Exception as e:
+            print(f"Error reading world file: {e}")
+    
     if request.method == 'POST':
         num_chapters = int(request.form.get('num_chapters', 10))
-        world_theme = session.get('world_theme', '')
-        characters = session.get('characters', '')
         
+        # Verify we have the necessary data before proceeding
         if not world_theme or not characters:
             return jsonify({'error': 'World theme or characters not found. Please complete previous steps first.'})
         
@@ -264,8 +324,8 @@ def outline():
     return render_template('outline.html', 
                            outline=outline_content, 
                            chapters=chapters,
-                           world_theme=session.get('world_theme', ''),
-                           characters=session.get('characters', ''))
+                           world_theme=world_theme,
+                           characters=characters)
 
 @app.route('/save_outline', methods=['POST'])
 def save_outline():
