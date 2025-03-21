@@ -42,7 +42,8 @@ def world():
             prompts.WORLD_THEME_PROMPT.format(topic=topic)
         )
         
-        # Save world theme to session and file
+        # Clean and save world theme to session and file
+        world_theme = world_theme.strip()
         session['world_theme'] = world_theme
         with open('book_output/world.txt', 'w') as f:
             f.write(world_theme)
@@ -53,7 +54,7 @@ def world():
     world_theme = ''
     if os.path.exists('book_output/world.txt'):
         with open('book_output/world.txt', 'r') as f:
-            world_theme = f.read()
+            world_theme = f.read().strip()
         session['world_theme'] = world_theme
     
     return render_template('world.html', world_theme=world_theme, topic=session.get('topic', ''))
@@ -62,8 +63,14 @@ def world():
 def save_world():
     """Save edited world theme"""
     world_theme = request.form.get('world_theme')
+    
+    # Strip extra newlines at the beginning and normalize newlines
+    world_theme = world_theme.strip()
+    
+    # Save to session
     session['world_theme'] = world_theme
     
+    # Save to file
     with open('book_output/world.txt', 'w') as f:
         f.write(world_theme)
     
@@ -83,16 +90,17 @@ def characters():
         book_agents = BookAgents(agent_config)
         agents = book_agents.create_agents(world_theme, 0)
         
-        # Generate characters using the prompt
+        # Generate characters using the character_generator agent
         characters_content = book_agents.generate_content(
-            "story_planner",
+            "character_generator",
             prompts.CHARACTER_CREATION_PROMPT.format(
                 world_theme=world_theme,
                 num_characters=num_characters
             )
         )
         
-        # Save characters to session and file
+        # Clean and save characters to session and file
+        characters_content = characters_content.strip()
         session['characters'] = characters_content
         with open('book_output/characters.txt', 'w') as f:
             f.write(characters_content)
@@ -103,14 +111,14 @@ def characters():
     characters_content = ''
     if os.path.exists('book_output/characters.txt'):
         with open('book_output/characters.txt', 'r') as f:
-            characters_content = f.read()
+            characters_content = f.read().strip()
         session['characters'] = characters_content
     
     # Load world theme from file if it exists
     world_theme = ''
     if os.path.exists('book_output/world.txt'):
         with open('book_output/world.txt', 'r') as f:
-            world_theme = f.read()
+            world_theme = f.read().strip()
     # If not available from file, try from session
     else:
         world_theme = session.get('world_theme', '')
@@ -123,8 +131,14 @@ def characters():
 def save_characters():
     """Save edited characters"""
     characters_content = request.form.get('characters')
+    
+    # Strip extra newlines at the beginning and normalize newlines
+    characters_content = characters_content.strip()
+    
+    # Save to session
     session['characters'] = characters_content
     
+    # Save to file
     with open('book_output/characters.txt', 'w') as f:
         f.write(characters_content)
     
@@ -220,7 +234,8 @@ def outline():
                     'prompt': f"Content for chapter {i}"
                 })
         
-        # Save outline to session and file
+        # Clean and save outline to session and file
+        outline_content = outline_content.strip()
         session['outline'] = outline_content
         session['chapters'] = chapters
         with open('book_output/outline.txt', 'w') as f:
@@ -238,7 +253,7 @@ def outline():
     
     if os.path.exists('book_output/outline.txt'):
         with open('book_output/outline.txt', 'r') as f:
-            outline_content = f.read()
+            outline_content = f.read().strip()
         session['outline'] = outline_content
     
     if os.path.exists('book_output/outline.json'):
@@ -256,13 +271,19 @@ def outline():
 def save_outline():
     """Save edited outline"""
     outline_content = request.form.get('outline')
-    # You would also need to update the structured chapters data here
-    # This is simplified - you'd need to parse the outline to update chapters
     
+    # Strip extra newlines at the beginning and normalize newlines
+    outline_content = outline_content.strip()
+    
+    # Save to session
     session['outline'] = outline_content
     
+    # Save to file
     with open('book_output/outline.txt', 'w') as f:
         f.write(outline_content)
+    
+    # You would also need to update the structured chapters data here
+    # This is simplified - you'd need to parse the outline to update chapters
     
     return jsonify({'success': True})
 
@@ -321,7 +342,8 @@ def chapter(chapter_number):
             )
         )
         
-        # Save chapter
+        # Clean and save chapter content
+        chapter_content = chapter_content.strip()
         chapter_path = f'book_output/chapters/chapter_{chapter_number}.txt'
         with open(chapter_path, 'w') as f:
             f.write(chapter_content)
@@ -333,7 +355,7 @@ def chapter(chapter_number):
     chapter_path = f'book_output/chapters/chapter_{chapter_number}.txt'
     if os.path.exists(chapter_path):
         with open(chapter_path, 'r') as f:
-            chapter_content = f.read()
+            chapter_content = f.read().strip()
     
     return render_template('chapter.html', 
                            chapter=chapter_data,
@@ -344,6 +366,9 @@ def chapter(chapter_number):
 def save_chapter(chapter_number):
     """Save edited chapter content"""
     chapter_content = request.form.get('chapter_content')
+    
+    # Strip extra newlines at the beginning and normalize newlines
+    chapter_content = chapter_content.strip()
     
     chapter_path = f'book_output/chapters/chapter_{chapter_number}.txt'
     with open(chapter_path, 'w') as f:

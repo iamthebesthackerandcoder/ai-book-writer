@@ -50,6 +50,42 @@ class BookAgents:
             llm_config=self.agent_config,
         )
         
+        # Character Generator - Creates detailed character profiles
+        character_generator = autogen.AssistantAgent(
+            name="character_generator",
+            system_message=f"""You are an expert character creator who designs rich, memorable characters.
+            
+            Your responsibility is creating detailed character profiles for a story.
+            When given a world setting and number of characters:
+            1. Create unique, interesting characters that fit within the world
+            2. Give each character distinct traits, motivations, and backgrounds
+            3. Ensure characters have depth and potential for development
+            4. Include both protagonists and antagonists as appropriate
+            
+            Format your output EXACTLY as:
+            CHARACTER_PROFILES:
+            
+            [CHARACTER NAME 1]:
+            - Role: [Main character, supporting character, antagonist, etc.]
+            - Age/Species: [Character's age and species]
+            - Physical Description: [Detailed appearance]
+            - Personality: [Core personality traits]
+            - Background: [Character history and origins]
+            - Motivations: [What drives the character]
+            - Skills/Abilities: [Special talents or powers]
+            - Relationships: [Connections to other characters or groups]
+            - Arc: [How this character might develop over the story]
+            
+            [CHARACTER NAME 2]:
+            [Follow same format as above]
+            
+            [And so on for all requested characters]
+            
+            Always provide specific, detailed content - never use placeholders.
+            Ensure characters fit logically within the established world setting.""",
+            llm_config=self.agent_config,
+        )
+        
         # Story Planner - Focuses on high-level story structure
         story_planner = autogen.AssistantAgent(
             name="story_planner",
@@ -222,7 +258,8 @@ class BookAgents:
             "writer": writer,
             "editor": editor,
             "user_proxy": user_proxy,
-            "outline_creator": outline_creator
+            "outline_creator": outline_creator,
+            "character_generator": character_generator
         }
 
         return self.agents
@@ -249,6 +286,8 @@ class BookAgents:
             if agent_name == "world_builder" and "WORLD_ELEMENTS:" in content:
                 return True
             if agent_name == "editor" and "EDITED_SCENE:" in content:
+                return True
+            if agent_name == "character_generator" and "CHARACTER_PROFILES:" in content:
                 return True
             
             # General termination for long responses
@@ -302,6 +341,16 @@ class BookAgents:
             start = response.find("STORY_ARC:")
             if start != -1:
                 return response[start:].strip()
+        elif agent_name == "character_generator":
+            # Extract the character profiles part
+            start = response.find("CHARACTER_PROFILES:")
+            if start != -1:
+                return response[start:].strip()
+            else:
+                # Try to find any content that looks like character profiles
+                for marker in ["Character 1:", "Main Character:", "Protagonist:", "CHARACTER_PROFILES"]:
+                    if marker in response:
+                        return response
         
         return response
 
