@@ -110,6 +110,9 @@ By default it targets a local OpenAI-compatible endpoint at `http://localhost:12
 **OpenRouter variables**
 - `OPENROUTER_API_KEY` (required) authenticates every request
 - `OPENROUTER_MODEL` chooses the model id (defaults to `openai/gpt-4o-mini`)
+  - You can use preset keys like `gpt-4o-mini`, `claude-3-haiku`, `llama-3.1-70b`, etc.
+  - Or use full model IDs like `openai/gpt-4o-mini`, `anthropic/claude-3-haiku`, etc.
+  - Check [OpenRouter's model list](https://openrouter.ai/models) for all available models
 - `OPENROUTER_BASE_URL` lets you point to a custom OpenRouter gateway
 - `OPENROUTER_HTTP_REFERER` and `OPENROUTER_APP_TITLE` add optional headers
 
@@ -117,6 +120,17 @@ Set `LLM_TIMEOUT` (seconds) if you need to override the default 600 second reque
 
 When `OPENROUTER_API_KEY` is present and you do not pass a `local_url`, `get_config()` automatically uses OpenRouter.
 The Streamlit UI exposes the same choice with a provider selector; if you choose OpenRouter it will prompt for a model id and warn when the key is missing.
+
+**Popular preset model options:**
+- `gpt-4o-mini` - Fast, affordable model for everyday tasks
+- `gpt-4o` - Advanced model for complex tasks  
+- `claude-3-haiku` - Fast, intelligent model from Anthropic
+- `claude-3-sonnet` - Balanced model for everyday use
+- `claude-3-opus` - Most powerful Claude model
+- `llama-3.1-70b` - Powerful open-source model
+- `llama-3.1-405b` - Most powerful open-source model (free tier)
+- `gemini-pro` - Google's flagship model
+- `command-r-plus` - Great for reasoning and complex tasks
 
 ## Output Structure
 

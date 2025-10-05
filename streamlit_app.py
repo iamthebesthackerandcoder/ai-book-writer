@@ -415,11 +415,44 @@ with st.form("generation_form"):
         st.caption("Set the OPENROUTER_API_KEY environment variable before launching this app.")
         if not os.getenv("OPENROUTER_API_KEY"):
             st.warning("OPENROUTER_API_KEY is not set; requests will fail until you add it to the environment.")
-        model_name = st.text_input(
-            "OpenRouter model id",
-            value=os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini"),
-            help="Use the OpenRouter model list endpoint to explore available models.",
+        
+        # Model selection with presets
+        from model_presets import POPULAR_MODELS
+        
+        st.markdown("**Select OpenRouter Model:**")
+        
+        # Prepare model options
+        model_options = ["Custom model..."]
+        model_descriptions = {}
+        for preset_key, model_info in POPULAR_MODELS.items():
+            full_id = model_info["id"]
+            description = model_info["description"]
+            display_text = f"{preset_key} ({description})"
+            model_options.append(display_text)
+            model_descriptions[display_text] = full_id  # Map display text to actual model ID
+        
+        # Get current model from env
+        current_model = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")
+        
+        selected_option = st.selectbox(
+            "Choose a model preset",
+            options=model_options
         )
+        
+        if selected_option == "Custom model...":
+            model_name = st.text_input(
+                "Enter custom model ID",
+                value=current_model,
+                help="Enter the full model ID from OpenRouter (e.g., 'openai/gpt-4o-mini', 'anthropic/claude-3-haiku', etc.)"
+            )
+        else:
+            # Use the selected model ID from the preset
+            selected_model_id = model_descriptions.get(selected_option, current_model)
+            model_name = st.text_input(
+                "Model id",
+                value=selected_model_id,
+                help="You can use preset keys like 'gpt-4o-mini', 'claude-3-haiku', etc., or full model IDs like 'openai/gpt-4o-mini'"
+            )
 
     submitted = st.form_submit_button("Run agents", type="primary")
 
