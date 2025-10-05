@@ -2,11 +2,26 @@
 import os
 from typing import Dict, Optional
 
+from pathlib import Path
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = None  # Optional dependency
+
 
 DEFAULT_LOCAL_URL = "http://localhost:1234/v1"
 DEFAULT_LOCAL_MODEL = "Mistral-Nemo-Instruct-2407"
 DEFAULT_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 DEFAULT_OPENROUTER_MODEL = "openai/gpt-4o-mini"
+
+
+# Load environment variables from .env if present without overriding existing values.
+if load_dotenv is not None:
+    project_root_env = Path(__file__).resolve().parent / ".env"
+    load_dotenv(dotenv_path=project_root_env, override=False)
+    # Allow python-dotenv to fall back to its default search (covers parent directories).
+    load_dotenv(override=False)
 
 
 def _build_local_config(url: str, model: Optional[str]) -> Dict:

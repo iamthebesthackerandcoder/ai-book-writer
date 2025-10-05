@@ -6,11 +6,11 @@ Minimal directives for integrating and enumerating OpenRouter models using its R
 ---
 
 ## Project Quick Start (ai-book-writer)  
-1. Export OPENROUTER_API_KEY (PowerShell: setx OPENROUTER_API_KEY "sk-..."; Bash: export OPENROUTER_API_KEY=sk-...).  
-2. Optional overrides: OPENROUTER_MODEL, OPENROUTER_BASE_URL, OPENROUTER_HTTP_REFERER, OPENROUTER_APP_TITLE.  
-3. Run python main.py or streamlit run streamlit_app.py; choose **OpenRouter** in the provider selector.  
-4. Programmatic access: get_config(use_openrouter=True, model="mistralai/mistral-large").  
-5. Clear the provider toggle or unset the API key to fall back to the local endpoint.  
+1. Copy `.env.example` to `.env` and set `OPENROUTER_API_KEY=sk-...`.  
+2. Optional overrides go in `.env` (OPENROUTER_MODEL, OPENROUTER_BASE_URL, OPENROUTER_HTTP_REFERER, OPENROUTER_APP_TITLE) or your shell environment.  
+3. Run `python main.py` or `streamlit run streamlit_app.py`; choose **OpenRouter** in the provider selector.  
+4. Programmatic access: `get_config(use_openrouter=True, model="mistralai/mistral-large")`.  
+5. Clear the provider toggle or remove the API key to fall back to the local endpoint.  
 
 ## Base URL  
 `https://openrouter.ai/api/v1`  
