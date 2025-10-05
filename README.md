@@ -43,6 +43,16 @@ pip install -r requirements.txt
 
 ## Usage
 
+### Interactive UI
+
+Launch the Streamlit dashboard for a guided experience:
+
+```bash
+streamlit run streamlit_app.py
+```
+
+The UI lets you tweak the story prompt, choose the number of chapters, and decide whether to generate full chapters. Progress updates appear in real time, and you can download the outline and any generated chapters directly from the page.
+
 1. Basic usage:
 ```python
 from main import main
@@ -86,6 +96,27 @@ The system can be configured through `config.py`. Key configurations include:
 - Number of chapters
 - Agent parameters
 - Output directory settings
+
+### Choosing an LLM backend
+
+The system reads environment variables via `config.get_config()` so you can switch providers without touching code.
+By default it targets a local OpenAI-compatible endpoint at `http://localhost:1234/v1`, but it now understands OpenRouter as well.
+
+**Local endpoint variables**
+- `LOCAL_LLM_URL` sets the base URL (defaults to `http://localhost:1234/v1`)
+- `LOCAL_LLM_MODEL` overrides the model name passed to the server
+- `LOCAL_LLM_API_KEY` is only needed if your local server enforces auth
+
+**OpenRouter variables**
+- `OPENROUTER_API_KEY` (required) authenticates every request
+- `OPENROUTER_MODEL` chooses the model id (defaults to `openai/gpt-4o-mini`)
+- `OPENROUTER_BASE_URL` lets you point to a custom OpenRouter gateway
+- `OPENROUTER_HTTP_REFERER` and `OPENROUTER_APP_TITLE` add optional headers
+
+Set `LLM_TIMEOUT` (seconds) if you need to override the default 600 second request timeout.
+
+When `OPENROUTER_API_KEY` is present and you do not pass a `local_url`, `get_config()` automatically uses OpenRouter.
+The Streamlit UI exposes the same choice with a provider selector; if you choose OpenRouter it will prompt for a model id and warn when the key is missing.
 
 ## Output Structure
 
